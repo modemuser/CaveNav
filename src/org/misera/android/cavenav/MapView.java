@@ -56,18 +56,29 @@ public class MapView extends View {
 	    float centerX = screen.right/2;
 	    float centerY = screen.bottom/2;
 	    
+		float[] mapCoords = screenToMapCoords(mPosX, mPosY);
+		float[] mapCenterCoords = screenToMapCoords(centerX, centerY);
+		
+		//centerX = mapCenterCoords[0];
+		//centerY = mapCenterCoords[1];
+		
 		float x = mPosX;
-	    float y = mPosY;
+		float y = mPosY;
+		
+		x = mapCoords[0];
+	    y = mapCoords[1];
 		
 		
 		//m.preScale(mScaleFactor, mScaleFactor, centerX, centerY);
-		float[] mapCoords = screenToMapCoords(x, y);
-		float[] mapCenterCoords = screenToMapCoords(centerX, centerY);
-		//m.setTranslate(mapCoords[0],mapCoords[1]);	    
-		m.setTranslate(x,y);
-		m.preRotate(angle, centerX - x, centerY - y);
 		
+		
+		//m.setTranslate(mapCoords[0],mapCoords[1]);	    
+		
+		m.setRotate(angle, centerX - x, centerY - y);
+		
+		m.postTranslate(x, y);
 		m.postScale(mScaleFactor, mScaleFactor, centerX, centerY);
+		//m.postTranslate(mapCoords
 		
 				
 	    
