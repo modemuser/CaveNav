@@ -56,30 +56,48 @@ public class MapView extends View {
 	    float centerX = screen.right/2;
 	    float centerY = screen.bottom/2;
 	    
-		float[] mapCoords = screenToMapCoords(mPosX, mPosY);
+		float[] mapCoords = screenToMapCoords(-mPosX, -mPosY);
 		float[] mapCenterCoords = screenToMapCoords(centerX, centerY);
 		
 		//centerX = mapCenterCoords[0];
 		//centerY = mapCenterCoords[1];
 		
-		float x = mPosX;
-		float y = mPosY;
+		float x = -mPosX;
+		float y = -mPosY;
 		
-		x = mapCoords[0];
-	    y = mapCoords[1];
+		//x = mapCoords[0];
+	    //y = mapCoords[1];
 		
 		
 		//m.preScale(mScaleFactor, mScaleFactor, centerX, centerY);
 		
 		
-		//m.setTranslate(mapCoords[0],mapCoords[1]);	    
+		//m.setTranslate(mapCoords[0],mapCoords[1]);
 		
-		m.setRotate(angle, centerX - x, centerY - y);
+		/* 
+			Convert the point that is C in the viewport coordinate system
+			to map coordinate system and move it to (0,0)
+		*/
+		m.setTranslate(-(centerX + x), -(centerY + y));
 		
-		m.postTranslate(x, y);
-		m.postScale(mScaleFactor, mScaleFactor, centerX, centerY);
-		//m.postTranslate(mapCoords
+		/* 
+			Now rotate the map around point (0,0) which 
+			now corresponds to the viewport center
+		*/
+		m.postRotate(angle, 0,0);		
 		
+		/*
+			Scale around the C
+		*/
+		m.postScale(mScaleFactor, mScaleFactor, 0, 0);
+		
+		/* 
+			Move map back so that only the (x,y) offset remains
+		*/
+		m.postTranslate((centerX), (centerY));
+		//m.postTranslate(-mPosX, -mPosY);
+		
+		//m.postRotate(angle, centerX, centerY);
 				
 	    
 	    
