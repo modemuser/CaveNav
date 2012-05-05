@@ -36,8 +36,8 @@ public class MapView extends View {
 		screen.bottom = dm.heightPixels;
 		screen.right = dm.widthPixels;
 
-	    mPosX = screen.right/2;
-	    mPosY = screen.bottom/2;
+	    mPosX = 0;//screen.right/2;
+	    mPosY = 0;//screen.bottom/2;
 	    
 	    mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 
@@ -49,48 +49,25 @@ public class MapView extends View {
     public void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 	    canvas.save();
-	    /*
-	    float centerX = screen.right/2;
-	    float centerY = screen.bottom/2;
-	    
-        canvas.translate(centerX, centerY);
-        canvas.rotate(-degrees + 180);
-	    canvas.scale(mScaleFactor, mScaleFactor);
-        canvas.translate(-centerX, -centerY);
-        canvas.translate(mPosX, mPosY);
-
-		canvas.drawBitmap(pic, null, screen, null);
-		
-	    Paint paint = new Paint();
-	    paint.setColor(Color.RED);
-	    canvas.drawCircle(centerX, centerY, 3, paint);
-	    paint.setColor(Color.GREEN);
-	    canvas.drawCircle(mPosX, mPosY, 3, paint);
-        */
 		
 	    
 	    Matrix m = new Matrix();
 	    float centerX = screen.right/2;
 	    float centerY = screen.bottom/2;
-	    m.preScale(mScaleFactor, mScaleFactor, centerX, centerY);
-	    m.preRotate(angle, centerX, centerY);
 	    
-	    float x = mPosX / mScaleFactor;
+		float x = mPosX / mScaleFactor;
 	    float y = mPosY / mScaleFactor;
 		
-		// Convert x,y to polar coords
 		
-		double r = Math.sqrt(x*x + y*y);
-		double theta = Math.atan2(y,x);
+		//m.preScale(mScaleFactor, mScaleFactor, centerX, centerY);
+		float[] mapCoords = screenToMapCoords(x, y);
+		m.setTranslate(x,y);	    
 		
-		// Rotate by angle
-		double rotation = angle * Math.PI / 180;
-		theta -= rotation;
-		
-		x = (float) (r * Math.cos(theta));
-		y = (float) (r * Math.sin(theta));
-		
-	    m.preTranslate(x, y);
+		m.postRotate(angle, centerX, centerY);
+
+
+	    
+	    
         canvas.drawBitmap(pic, m, null);
 		
 	    /*
@@ -120,11 +97,37 @@ public class MapView extends View {
 	    canvas.drawCircle(centerX, centerY, 1, paint);
 	    paint.setStyle(Paint.Style.STROKE);
 	    canvas.drawCircle(centerX, centerY, 3, paint);
-	    String debug = "angle: " + angle + "�, zoom: " + mScaleFactor;
+	    String debug = "angle: " + angle + "�, zoom: " + mScaleFactor + "(x,y): (" + mPosX + "," + mPosY + ")" ;
 	    canvas.drawText(debug, 10, 10, paint);
         
 	    canvas.restore();
     }
+	
+	private float[] screenToMapCoords(float xScreen,float yScreen){
+		
+		float offsetX = mPosX;
+		float offsetY = mPosY;
+		
+		float x = xScreen + offsetX;
+		float y = yScreen + offsetY;
+		
+		// Convert x,y to polar coords
+
+		double r = Math.sqrt(x*x + y*y);
+		double theta = Math.atan2(y,x);
+
+		// Rotate by angle
+		double rotation = angle * Math.PI / 180;
+		theta += rotation;
+
+		// Convert back to cartesian coords
+
+		x = (float) (r * Math.cos(theta));
+		y = (float) (r * Math.sin(theta));
+		
+		float[] returnArray = {x,y};
+		return returnArray;
+	}
 	
 	public boolean onTouchEvent(MotionEvent  ev) {
 		mScaleDetector.onTouchEvent(ev);
