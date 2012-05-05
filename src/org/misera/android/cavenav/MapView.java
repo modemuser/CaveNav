@@ -77,6 +77,19 @@ public class MapView extends View {
 	    
 	    float x = mPosX / mScaleFactor;
 	    float y = mPosY / mScaleFactor;
+		
+		// Convert x,y to polar coords
+		
+		double r = Math.sqrt(x*x + y*y);
+		double theta = Math.atan2(y,x);
+		
+		// Rotate by angle
+		double rotation = angle * Math.PI / 180;
+		theta -= rotation;
+		
+		x = (float) (r * Math.cos(theta));
+		y = (float) (r * Math.sin(theta));
+		
 	    m.preTranslate(x, y);
         canvas.drawBitmap(pic, m, null);
 		
@@ -107,7 +120,7 @@ public class MapView extends View {
 	    canvas.drawCircle(centerX, centerY, 1, paint);
 	    paint.setStyle(Paint.Style.STROKE);
 	    canvas.drawCircle(centerX, centerY, 3, paint);
-	    String debug = "angle: " + angle + "º, zoom: " + mScaleFactor;
+	    String debug = "angle: " + angle + "ï¿½, zoom: " + mScaleFactor;
 	    canvas.drawText(debug, 10, 10, paint);
         
 	    canvas.restore();
