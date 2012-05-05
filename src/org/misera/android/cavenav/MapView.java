@@ -22,6 +22,7 @@ public class MapView extends View {
     private Rect screen = new Rect();
     private ScaleGestureDetector mScaleDetector;
     private float mScaleFactor = 1.f;
+	private boolean scaling = false;
 	private float mLastTouchY;
 	private float mLastTouchX;
 	private float mPosX;
@@ -55,17 +56,20 @@ public class MapView extends View {
 	    float centerX = screen.right/2;
 	    float centerY = screen.bottom/2;
 	    
-		float x = mPosX / mScaleFactor;
-	    float y = mPosY / mScaleFactor;
+		float x = mPosX;
+	    float y = mPosY;
 		
 		
 		//m.preScale(mScaleFactor, mScaleFactor, centerX, centerY);
 		float[] mapCoords = screenToMapCoords(x, y);
-		m.setTranslate(x,y);	    
+		float[] mapCenterCoords = screenToMapCoords(centerX, centerY);
+		//m.setTranslate(mapCoords[0],mapCoords[1]);	    
+		m.setTranslate(x,y);
+		m.preRotate(angle, centerX - x, centerY - y);
 		
-		m.postRotate(angle, centerX, centerY);
-
-
+		m.postScale(mScaleFactor, mScaleFactor, centerX, centerY);
+		
+				
 	    
 	    
         canvas.drawBitmap(pic, m, null);
@@ -98,8 +102,15 @@ public class MapView extends View {
 	    paint.setStyle(Paint.Style.STROKE);
 	    canvas.drawCircle(centerX, centerY, 3, paint);
 	    String debug = "angle: " + angle + "�, zoom: " + mScaleFactor + "(x,y): (" + mPosX + "," + mPosY + ")" ;
-	    canvas.drawText(debug, 10, 10, paint);
+	    if(scaling){
+			debug += " [SCALING]";
+		}
+		canvas.drawText(debug, 10, 10, paint);
         
+		if(scaling){
+			scaling = false;
+		}
+		
 	    canvas.restore();
     }
 	
@@ -118,7 +129,7 @@ public class MapView extends View {
 
 		// Rotate by angle
 		double rotation = angle * Math.PI / 180;
-		theta += rotation;
+		theta -= rotation;
 
 		// Convert back to cartesian coords
 
@@ -134,34 +145,40 @@ public class MapView extends View {
 		final int action = ev.getAction();
 		switch (action) {
 		    case MotionEvent.ACTION_DOWN: {
-		        final float x = ev.getX();
-		        final float y = ev.getY();
-		        
-		        // Remember where we started
-		        mLastTouchX = x;
-		        mLastTouchY = y;
+				if(!scaling){
+					final float x = ev.getX();
+					final float y = ev.getY();
+
+					// Remember where we started
+					mLastTouchX = x;
+					mLastTouchY = y;	
+				}
 		        break;
 		    }
 		        
 		    case MotionEvent.ACTION_MOVE: {
-		        final float x = ev.getX();
-		        final float y = ev.getY();
+				if(!scaling){
+					final float x = ev.getX();
+					final float y = ev.getY();
+
+					// Calculate the distance moved
+					final float dx = (x - mLastTouchX);
+					final float dy = (y - mLastTouchY);
+
+					
+					// Move the object
+					mPosX += dx / mScaleFactor;
+					mPosY += dy / mScaleFactor;
+
+					// Remember this touch position for the next move event
+					mLastTouchX = x;
+					mLastTouchY = y;
+
+					// Invalidate to request a redraw
+					invalidate();	
+				}
+				break;
 		        
-		        // Calculate the distance moved
-		        final float dx = x - mLastTouchX;
-		        final float dy = y - mLastTouchY;
-		        
-		        // Move the object
-		        mPosX += dx;
-		        mPosY += dy;
-		        
-		        // Remember this touch position for the next move event
-		        mLastTouchX = x;
-		        mLastTouchY = y;
-		        
-		        // Invalidate to request a redraw
-		        invalidate();
-		        break;
 		    }
 	    }
 		return true;
@@ -170,6 +187,7 @@ public class MapView extends View {
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 	    @Override
 	    public boolean onScale(ScaleGestureDetector detector) {
+			scaling = true;
 	        mScaleFactor *= detector.getScaleFactor();
 
 	        // Don't let the object get too small or too large.
