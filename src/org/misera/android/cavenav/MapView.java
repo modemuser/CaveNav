@@ -56,14 +56,14 @@ public class MapView extends View {
 	    float centerX = screen.right/2;
 	    float centerY = screen.bottom/2;
 	    
-		float[] mapCoords = screenToMapCoords(-mPosX, -mPosY);
-		float[] mapCenterCoords = screenToMapCoords(centerX, centerY);
+		float[] mapCoords = screenToMapCoords(-angle, mPosX, mPosY);
+		float[] mapCenterCoords = screenToMapCoords(-angle, centerX, centerY);
 		
 		//centerX = mapCenterCoords[0];
 		//centerY = mapCenterCoords[1];
 		
-		float x = -mPosX;
-		float y = -mPosY;
+		float x = mPosX;
+		float y = mPosY;
 		
 		//x = mapCoords[0];
 	    //y = mapCoords[1];
@@ -86,15 +86,17 @@ public class MapView extends View {
 		*/
 		m.postRotate(angle, 0,0);		
 		
-		/*
-			Scale around the C
-		*/
-		m.postScale(mScaleFactor, mScaleFactor, 0, 0);
-		
+
 		/* 
 			Move map back so that only the (x,y) offset remains
 		*/
 		m.postTranslate((centerX), (centerY));
+
+		/*
+		 Scale around the C
+		 */
+		m.postScale(mScaleFactor, mScaleFactor, centerX, centerY);
+		
 		//m.postTranslate(-mPosX, -mPosY);
 		
 		//m.postRotate(angle, centerX, centerY);
@@ -143,13 +145,10 @@ public class MapView extends View {
 	    canvas.restore();
     }
 	
-	private float[] screenToMapCoords(float xScreen,float yScreen){
+	private float[] screenToMapCoords(float angle, float xScreen,float yScreen){
 		
-		float offsetX = mPosX;
-		float offsetY = mPosY;
-		
-		float x = xScreen + offsetX;
-		float y = yScreen + offsetY;
+		float x = xScreen;
+		float y = yScreen;
 		
 		// Convert x,y to polar coords
 
@@ -158,7 +157,7 @@ public class MapView extends View {
 
 		// Rotate by angle
 		double rotation = angle * Math.PI / 180;
-		theta -= rotation;
+		theta += rotation;
 
 		// Convert back to cartesian coords
 
@@ -196,8 +195,8 @@ public class MapView extends View {
 
 					
 					// Move the object
-					mPosX += dx / mScaleFactor;
-					mPosY += dy / mScaleFactor;
+					mPosX -= dx / mScaleFactor;
+					mPosY -= dy / mScaleFactor;
 
 					// Remember this touch position for the next move event
 					mLastTouchX = x;
