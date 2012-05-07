@@ -78,19 +78,19 @@ public class MapView extends View {
 			Convert the point that is C in the viewport coordinate system
 			to map coordinate system and move it to (0,0)
 		*/
-		m.setTranslate(-(centerX + x), -(centerY + y));
+		m.setTranslate(-(centerX), -(centerY));
 		
 		/* 
 			Now rotate the map around point (0,0) which 
 			now corresponds to the viewport center
 		*/
-		m.postRotate(angle, 0,0);		
+		m.postRotate(angle, x,y);		
 		
 
 		/* 
 			Move map back so that only the (x,y) offset remains
 		*/
-		m.postTranslate((centerX), (centerY));
+		m.postTranslate((centerX - x), (centerY - y));
 
 		/*
 		 Scale around the C
@@ -157,7 +157,7 @@ public class MapView extends View {
 
 		// Rotate by angle
 		double rotation = angle * Math.PI / 180;
-		theta += rotation;
+		theta -= rotation;
 
 		// Convert back to cartesian coords
 
@@ -188,15 +188,18 @@ public class MapView extends View {
 				if(!scaling){
 					final float x = ev.getX();
 					final float y = ev.getY();
+					
+					
 
 					// Calculate the distance moved
 					final float dx = (x - mLastTouchX);
 					final float dy = (y - mLastTouchY);
 
+					float[] mapCoords = screenToMapCoords(angle, dx, dy);
 					
 					// Move the object
-					mPosX -= dx / mScaleFactor;
-					mPosY -= dy / mScaleFactor;
+					mPosX -= mapCoords[0] / mScaleFactor;
+					mPosY -= mapCoords[1] / mScaleFactor;
 
 					// Remember this touch position for the next move event
 					mLastTouchX = x;
