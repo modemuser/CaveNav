@@ -78,19 +78,19 @@ public class MapView extends View {
 			Convert the point that is C in the viewport coordinate system
 			to map coordinate system and move it to (0,0)
 		*/
-		m.setTranslate(-(centerX), -(centerY));
+		m.setTranslate(-(centerX + x), -(centerY + y));
 		
 		/* 
 			Now rotate the map around point (0,0) which 
 			now corresponds to the viewport center
 		*/
-		m.postRotate(angle, x,y);		
+		m.postRotate(angle, 0,0);		
 		
 
 		/* 
 			Move map back so that only the (x,y) offset remains
 		*/
-		m.postTranslate((centerX - x), (centerY - y));
+		m.postTranslate((centerX), (centerY));
 
 		/*
 		 Scale around the C
