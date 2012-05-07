@@ -28,6 +28,7 @@ public class MapView extends View {
 	private float mPosX;
 	private float mPosY;
 	private float angle = 0.f;
+	private float prevAngle = 0.f;
     
 	public MapView(Context context, Bitmap pic, SensorManager mSensorManager) {
 		super(context);
@@ -48,6 +49,7 @@ public class MapView extends View {
 	
 	@Override
     public void onDraw(Canvas canvas) {
+
 		super.onDraw(canvas);
 	    canvas.save();
 		
@@ -55,18 +57,10 @@ public class MapView extends View {
 	    Matrix m = new Matrix();
 	    float centerX = screen.right/2;
 	    float centerY = screen.bottom/2;
-	    
-		float[] mapCoords = screenToMapCoords(-angle, mPosX, mPosY);
-		float[] mapCenterCoords = screenToMapCoords(-angle, centerX, centerY);
 		
-		//centerX = mapCenterCoords[0];
-		//centerY = mapCenterCoords[1];
 		
 		float x = mPosX;
 		float y = mPosY;
-		
-		//x = mapCoords[0];
-	    //y = mapCoords[1];
 		
 		
 		//m.preScale(mScaleFactor, mScaleFactor, centerX, centerY);
@@ -93,40 +87,15 @@ public class MapView extends View {
 		m.postTranslate((centerX), (centerY));
 
 		/*
-		 Scale around the C
+		 	Scale around the C
 		 */
 		m.postScale(mScaleFactor, mScaleFactor, centerX, centerY);
 		
-		//m.postTranslate(-mPosX, -mPosY);
-		
-		//m.postRotate(angle, centerX, centerY);
 				
 	    
 	    
         canvas.drawBitmap(pic, m, null);
 		
-	    /*
-	    float centerX = screen.right/2;
-	    float centerY = screen.bottom/2;
-	    double rad = Math.toRadians(angle);
-	    Matrix mt = new Matrix();
-	    mt.setTranslate(-centerX, -centerY);
-	    Matrix m = new Matrix();
-	    float[] values = {
-	    		(float) (mScaleFactor*Math.cos(rad)), (float) -Math.sin(rad), centerX,
-	    		(float) Math.sin(rad), (float) (mScaleFactor*Math.cos(rad)), centerY,
-	    		0, 0, 1
-	    };
-	    m.setValues(values);
-	    Matrix mtb = new Matrix();
-	    mtb.setTranslate(centerX, centerY);
-	    
-	    mt.preConcat(m);
-	    mt.preConcat(mtb);
-	    
-        canvas.drawBitmap(pic, mt, null);
-        */
-        
 	    Paint paint = new Paint();
 	    paint.setColor(Color.RED);
 	    canvas.drawCircle(centerX, centerY, 1, paint);
@@ -231,8 +200,24 @@ public class MapView extends View {
 	private final SensorEventListener mListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
         	float heading = event.values[0];
-        	angle = (float) Math.floor(-heading+180);
-            invalidate();
+			prevAngle = angle;
+        	float newAngle = (float) (-heading+180);
+			
+			/*if(prevAngle != newAngle){
+				float difference = newAngle - prevAngle;
+				int interpolation = 10;
+				float part = difference/interpolation;
+
+				for(int i = 0; i < interpolation; i++){
+					angle += part;
+					invalidate();
+				}
+				angle = newAngle;
+				prevAngle = angle;
+				invalidate();
+			}*/
+			angle = newAngle;
+			invalidate();
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
