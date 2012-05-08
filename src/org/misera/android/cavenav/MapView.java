@@ -16,6 +16,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -96,7 +97,9 @@ public class MapView extends View {
 	    paint.setStyle(Paint.Style.STROKE);
 	    canvas.drawCircle(centerX, centerY, 3, paint);
 	    // debug overlay
-	    String debug = "angle: " + angle + "º, zoom: " + mScaleFactor + " (x,y): (" + mPosX + "," + mPosY + ") " ;
+	    String debug = "angle: " + angle + "º, " +
+	    				"zoom: " + mScaleFactor + 
+	    				" (x,y): (" + mPosX + "," + mPosY + ") " ;
 	    if(scaling){
 			debug += "[SCALING] ";
 		}
@@ -187,7 +190,8 @@ public class MapView extends View {
 		        
 		    }
 	    }
-		return true;
+		//return true;
+		return super.onTouchEvent(ev);
 	}
 	
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -237,7 +241,9 @@ public class MapView extends View {
     
     private OnLongClickListener longClickListener = new OnLongClickListener() {
         public boolean onLongClick(View v) {
-        	Point coordinates = new Point((int)mLastTouchX, (int)mLastTouchY);
+        	float[] mapCoords = screenToMapCoords(angle, mLastTouchX, mLastTouchY);
+        	Point coordinates = new Point((int)mapCoords[0], (int)mapCoords[1]);
+        	Log.i("LongClick", coordinates.toString());
         	markers.add(coordinates);
 			return false;
         }
