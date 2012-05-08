@@ -1,24 +1,12 @@
 package org.misera.android.cavenav;
 
-import java.util.ArrayList;
-
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.Rect;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
-import android.view.View;
+import android.content.*;
+import android.graphics.*;
+import android.hardware.*;
+import android.os.*;
+import android.util.*;
+import android.view.*;
+import java.util.*;
 
 public class MapView extends View {
 
@@ -46,6 +34,8 @@ public class MapView extends View {
 
         Sensor mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 	    mSensorManager.registerListener(mListener, mSensor, SensorManager.SENSOR_DELAY_GAME);
+		
+		this.setOnClickListener(clickListener);
 	    
 	    this.setOnLongClickListener(longClickListener);
 	}  
@@ -109,7 +99,7 @@ public class MapView extends View {
 		for (Point p : markers) {
 			float[] coords = {p.x, p.y};
 			m.mapPoints(coords);
-			canvas.drawCircle(coords[0], coords[1], 3, paint);
+			canvas.drawCircle(coords[0], coords[1], 1, paint);
 		}
 		
 	    canvas.restore();
@@ -134,6 +124,30 @@ public class MapView extends View {
 		x = (float) (r * Math.cos(theta));
 		y = (float) (r * Math.sin(theta));
 		
+		float[] returnArray = {x,y};
+		return returnArray;
+	}
+	
+	
+	private float[] screenToMapCoords(float angle, float xMap,float yMap){
+
+		float x = xMap;
+		float y = yMap;
+
+		// Convert x,y to polar coords
+
+		double r = Math.sqrt(x*x + y*y);
+		double theta = Math.atan2(y,x);
+
+		// Rotate by angle
+		double rotation = angle * Math.PI / 180;
+		theta += rotation;
+
+		// Convert back to cartesian coords
+
+		x = (float) (r * Math.cos(theta));
+		y = (float) (r * Math.sin(theta));
+
 		float[] returnArray = {x,y};
 		return returnArray;
 	}
@@ -188,7 +202,7 @@ public class MapView extends View {
 		        
 		    }
 	    }
-		return true;
+		return super.onTouchEvent(ev);
 	}
 	
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -242,7 +256,31 @@ public class MapView extends View {
         public boolean onLongClick(View v) {
         	Point coordinates = new Point((int)mLastTouchX, (int)mLastTouchY);
         	markers.add(coordinates);
+			markers = new ArrayList<Point>();
 			return false;
         }
     };
+	
+	private OnClickListener clickListener = new OnClickListener(){
+		public void onClick(View v){
+			float stepLength = 0.75f;
+			float pixelLength = 0.5f;
+			
+			float dx = 0;
+			float dy = -(stepLength / pixelLength);
+			
+			float[] transformed = mapToScreenCoords(angle, dx,dy);
+			mPosX += transformed[0];
+			mPosY += transformed[1];
+			
+			float centerX = screen.right/2;
+			float centerY = screen.bottom/2;
+			
+			markers.add(new Point((int) (mPosX + centerX), (int) (mPosY + centerY)));
+			//mPosX -= dx;
+			Log.i("clickAdvance", "PosX = " + mPosX);
+			invalidate();
+			//return false;
+		}
+	};
 }

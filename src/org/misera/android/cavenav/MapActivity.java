@@ -28,7 +28,7 @@ public class MapActivity extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
 		try {
-			pic = getBitmapFromAsset("caestert.png");
+			pic = getBitmapFromAsset("caestert_negative.png");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
