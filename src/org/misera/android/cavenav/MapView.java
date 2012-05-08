@@ -1,16 +1,20 @@
 package org.misera.android.cavenav;
 
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -37,15 +41,17 @@ public class MapView extends View {
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
 		screen.bottom = dm.heightPixels;
 		screen.right = dm.widthPixels;
-
-	    mPosX = 0;//screen.right/2;
-	    mPosY = 0;//screen.bottom/2;
 	    
 	    mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 
         Sensor mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 	    mSensorManager.registerListener(mListener, mSensor, SensorManager.SENSOR_DELAY_GAME);
+	    
+	    this.setOnLongClickListener(longClickListener);
 	}  
+	
+	protected void onCreate(Bundle savedValues) {
+	}
 	
 	@Override
     public void onDraw(Canvas canvas) {
@@ -53,20 +59,13 @@ public class MapView extends View {
 		super.onDraw(canvas);
 	    canvas.save();
 		
-	    
 	    Matrix m = new Matrix();
 	    float centerX = screen.right/2;
 	    float centerY = screen.bottom/2;
-		
-		
+
 		float x = mPosX;
 		float y = mPosY;
-		
-		
-		//m.preScale(mScaleFactor, mScaleFactor, centerX, centerY);
-		
-		
-		//m.setTranslate(mapCoords[0],mapCoords[1]);
+
 		
 		/* 
 			Convert the point that is C in the viewport coordinate system
@@ -80,7 +79,6 @@ public class MapView extends View {
 		*/
 		m.postRotate(angle, 0,0);		
 		
-
 		/* 
 			Move map back so that only the (x,y) offset remains
 		*/
@@ -91,9 +89,6 @@ public class MapView extends View {
 		 */
 		m.postScale(mScaleFactor, mScaleFactor, centerX, centerY);
 		
-				
-	    
-	    
         canvas.drawBitmap(pic, m, null);
 		
 	    Paint paint = new Paint();
@@ -101,23 +96,29 @@ public class MapView extends View {
 	    canvas.drawCircle(centerX, centerY, 1, paint);
 	    paint.setStyle(Paint.Style.STROKE);
 	    canvas.drawCircle(centerX, centerY, 3, paint);
-	    String debug = "angle: " + angle + "�, zoom: " + mScaleFactor + "(x,y): (" + mPosX + "," + mPosY + ")" ;
+	    // debug overlay
+	    String debug = "angle: " + angle + "�, zoom: " + mScaleFactor + " (x,y): (" + mPosX + "," + mPosY + ") " ;
 	    if(scaling){
-			debug += " [SCALING]";
+			debug += "[SCALING] ";
 		}
+	    debug += markers.size();
 		canvas.drawText(debug, 10, 10, paint);
-        
-		if(scaling){
-			scaling = false;
+		// markers
+		paint.setColor(Color.YELLOW);
+		paint.setStyle(Paint.Style.FILL_AND_STROKE);
+		for (Point p : markers) {
+			float[] coords = {p.x, p.y};
+			m.mapPoints(coords);
+			canvas.drawCircle(coords[0], coords[1], 3, paint);
 		}
 		
 	    canvas.restore();
     }
 	
-	private float[] screenToMapCoords(float angle, float xScreen,float yScreen){
+	private float[] mapToScreenCoords(float angle, float xMap,float yMap){
 		
-		float x = xScreen;
-		float y = yScreen;
+		float x = xMap;
+		float y = yMap;
 		
 		// Convert x,y to polar coords
 
@@ -136,11 +137,17 @@ public class MapView extends View {
 		float[] returnArray = {x,y};
 		return returnArray;
 	}
-	
+		
 	public boolean onTouchEvent(MotionEvent  ev) {
 		mScaleDetector.onTouchEvent(ev);
 		final int action = ev.getAction();
 		switch (action) {
+			case MotionEvent.ACTION_UP: {
+				if(scaling){
+					scaling = false;
+				}
+		        break;
+		    }
 		    case MotionEvent.ACTION_DOWN: {
 				if(!scaling){
 					final float x = ev.getX();
@@ -164,7 +171,7 @@ public class MapView extends View {
 					final float dx = (x - mLastTouchX);
 					final float dy = (y - mLastTouchY);
 
-					float[] mapCoords = screenToMapCoords(angle, dx, dy);
+					float[] mapCoords = mapToScreenCoords(angle, dx, dy);
 					
 					// Move the object
 					mPosX -= mapCoords[0] / mScaleFactor;
@@ -197,30 +204,45 @@ public class MapView extends View {
 	        return true;
 	    }
 	}
+	
+	ArrayList<Float> headings = new ArrayList<Float>();
+	
 	private final SensorEventListener mListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
         	float heading = event.values[0];
-			prevAngle = angle;
-        	float newAngle = (float) (-heading+180);
-			
-			/*if(prevAngle != newAngle){
-				float difference = newAngle - prevAngle;
-				int interpolation = 10;
-				float part = difference/interpolation;
 
-				for(int i = 0; i < interpolation; i++){
-					angle += part;
-					invalidate();
-				}
-				angle = newAngle;
-				prevAngle = angle;
-				invalidate();
-			}*/
-			angle = newAngle;
-			invalidate();
+        	/* averaging always makes it jump since avg({0, 360})==180
+            headings.add(heading);
+            if (headings.size() > 50) {
+            	headings.remove(0);
+            }
+            float sum = 0.f;
+            for (float f : headings) {
+            	sum += f;
+            }
+            float avg = sum / headings.size();
+            */
+        	float angleNew = -heading + 180;
+        	// to smooth the rotation, only rotate if angle changes significantly
+        	if (Math.abs(angle - angleNew) > 0.3) {
+        		angle = angleNew;
+                invalidate();
+        	}
+            invalidate();
+
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+    
+    private ArrayList<Point> markers = new ArrayList<Point>();
+    
+    private OnLongClickListener longClickListener = new OnLongClickListener() {
+        public boolean onLongClick(View v) {
+        	Point coordinates = new Point((int)mLastTouchX, (int)mLastTouchY);
+        	markers.add(coordinates);
+			return false;
         }
     };
 }
