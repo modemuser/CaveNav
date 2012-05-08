@@ -6,6 +6,7 @@ import android.hardware.*;
 import android.os.*;
 import android.util.*;
 import android.view.*;
+
 import java.util.*;
 
 public class MapView extends View {
@@ -21,6 +22,7 @@ public class MapView extends View {
 	private float mPosY;
 	private float angle = 0.f;
 	private float prevAngle = 0.f;
+	private Display mDisplay;
     
 	public MapView(Context context, Bitmap pic, SensorManager mSensorManager) {
 		super(context);
@@ -38,6 +40,12 @@ public class MapView extends View {
 		this.setOnClickListener(clickListener);
 	    
 	    this.setOnLongClickListener(longClickListener);
+	    
+	    WindowManager mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+	    mDisplay = mWindowManager.getDefaultDisplay();
+	    
+	    // 0deg = 0; 90deg CW = 1; 180deg = 3; 90deg CCW = 3 
+	    Log.d("ORIENTATION_TEST", "getOrientation(): " + mDisplay.getOrientation());
 	}  
 	
 	protected void onCreate(Bundle savedValues) {
@@ -224,19 +232,10 @@ public class MapView extends View {
 	private final SensorEventListener mListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
         	float heading = event.values[0];
-
-        	/* averaging always makes it jump since avg({0, 360})==180
-            headings.add(heading);
-            if (headings.size() > 50) {
-            	headings.remove(0);
-            }
-            float sum = 0.f;
-            for (float f : headings) {
-            	sum += f;
-            }
-            float avg = sum / headings.size();
-            */
-        	float angleNew = -heading + 180;
+        	// make the heading compatible to the transform matrix:
+        	// 1. invert sign of heading to turn the other way
+        	// 2. take into account screen orientation
+        	float angleNew = -heading - 90*mDisplay.getOrientation();
         	// to smooth the rotation, only rotate if angle changes significantly
         	if (Math.abs(angle - angleNew) > 0.3) {
         		angle = angleNew;
