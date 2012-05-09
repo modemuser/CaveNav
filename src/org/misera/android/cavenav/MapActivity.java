@@ -10,9 +10,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 
 public class MapActivity extends Activity {
 	
@@ -36,7 +38,12 @@ public class MapActivity extends Activity {
 
 		SensorManager mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
 		view = new MapView(this, pic, mSensorManager);
-		setContentView(view);
+		
+
+		setContentView(R.layout.main);
+		LinearLayout v = (LinearLayout) findViewById(R.id.contentMain);
+		v.addView(view);
+		
 		view.requestFocus();        
 
     }

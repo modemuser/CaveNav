@@ -25,10 +25,14 @@ public class MapView extends View {
 	public MapView(Context context, Bitmap pic, SensorManager mSensorManager) {
 		super(context);
 		this.pic = pic;
+		
 			
-        DisplayMetrics dm = context.getResources().getDisplayMetrics();
-		screen.bottom = dm.heightPixels;
-		screen.right = dm.widthPixels;
+        //DisplayMetrics dm = context.getResources().getDisplayMetrics();
+		//screen.bottom = dm.heightPixels;
+		//screen.right = dm.widthPixels;
+		
+		screen.bottom = this.getHeight();
+		screen.right = this.getWidth();
 	    
 	    mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 
@@ -46,6 +50,9 @@ public class MapView extends View {
 	@Override
     public void onDraw(Canvas canvas) {
 
+		screen.bottom = this.getHeight();
+		screen.right = this.getWidth();
+		
 		super.onDraw(canvas);
 	    canvas.save();
 		

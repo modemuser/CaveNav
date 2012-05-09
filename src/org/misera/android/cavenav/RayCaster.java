@@ -1,6 +1,7 @@
 package org.misera.android.cavenav;
 
-import android.graphics.*;
+import android.graphics.Bitmap;
+
 
 public class RayCaster
 {
