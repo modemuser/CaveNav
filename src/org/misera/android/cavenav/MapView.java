@@ -22,7 +22,6 @@ public class MapView extends View {
 	private float mPosX;
 	private float mPosY;
 	private float angle = 0.f;
-	private float prevAngle = 0.f;
 	private Display mDisplay;
 	private ArrayList<Point> vertices;
 	private ArrayList<Point[]> edges;
@@ -35,10 +34,6 @@ public class MapView extends View {
 		this.pic = pic;
 		this.vertices = vertices;
 		this.edges = edges;
-			
-        //DisplayMetrics dm = context.getResources().getDisplayMetrics();
-		//screen.bottom = dm.heightPixels;
-		//screen.right = dm.widthPixels;
 		
 		screen.bottom = this.getHeight();
 		screen.right = this.getWidth();
@@ -151,7 +146,6 @@ public class MapView extends View {
 		if(hasRayCaster){
 			RayCaster rayCaster = rayCastRenderer.rayCaster;
 			
-			float[] coords = screenToMapCoords(angle, mPosX, mPosY);
 			rayCaster.playerPos[0] = (int) Math.floor(mPosX + centerX);
 			rayCaster.playerPos[1] = (int) Math.floor(mPosY + centerY);
 			rayCaster.viewingAngle = - angle + 90;
@@ -160,6 +154,11 @@ public class MapView extends View {
 			
 		}
 	    canvas.restore();
+    }
+
+    public void clearMarkers() {
+		markers.clear();
+		invalidate();
     }
 	
 	private float[] mapToScreenCoords(float angle, float xMap,float yMap){
@@ -292,7 +291,6 @@ public class MapView extends View {
         		angle = angleNew;
                 invalidate();
         	}
-            invalidate();
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -303,13 +301,11 @@ public class MapView extends View {
     
     private OnLongClickListener longClickListener = new OnLongClickListener() {
         public boolean onLongClick(View v) {
-        	Point coordinates = new Point((int)mLastTouchX, (int)mLastTouchY);
-        	markers.add(coordinates);
-			markers = new ArrayList<Point>();
+        	clearMarkers();
 			return false;
         }
     };
-	
+    	
 	private OnClickListener clickListener = new OnClickListener(){
 		public void onClick(View v){
 			float stepLength = 0.75f;

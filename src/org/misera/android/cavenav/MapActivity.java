@@ -14,23 +14,30 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 
 public class MapActivity extends Activity {
 		
-    @Override
+    private MapView mapView;
+
+
+	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(
+        		WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+        	);
+		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
 		Bitmap pic = getBitmapFromAsset("caestert_negative.png");
-		ArrayList<Point> vertices = null;
+		ArrayList<Point> vertices = new ArrayList<Point>();
 		ArrayList<Point[]> edges = new ArrayList<Point[]>();
 		
 		try {
@@ -39,7 +46,7 @@ public class MapActivity extends Activity {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		MapView mapView = new MapView(this, pic, vertices, edges);
+		mapView = new MapView(this, pic, vertices, edges);
 		
 		
 		Bitmap map = getBitmapFromAsset("canny.png");
@@ -58,6 +65,25 @@ public class MapActivity extends Activity {
 
     }
     
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.actionbar, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.menu_clear:
+                mapView.clearMarkers();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
 	/**
 	 * Helper Functions
