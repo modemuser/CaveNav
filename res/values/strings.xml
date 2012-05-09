@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CaveNav</string>
-    <string name="menu_clear">Clear</string>
+    <string name="menu_clear">Clear markers</string>
+    <string name="choose_map">Choose map...</string><string name="caestert_negative">Caestert negative</string>
+    <string name="caestert">Caestert</string>
+    
 </resources>

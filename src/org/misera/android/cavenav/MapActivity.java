@@ -35,8 +35,11 @@ public class MapActivity extends Activity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
         	);
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
-		
-		Bitmap pic = getBitmapFromAsset("caestert_negative.png");
+        load("caestert_negative.png");
+	} 
+       
+	private void load(String filename) {	
+		Bitmap pic = getBitmapFromAsset(filename);
 		ArrayList<Point> vertices = new ArrayList<Point>();
 		ArrayList<Point[]> edges = new ArrayList<Point[]>();
 		
@@ -80,6 +83,12 @@ public class MapActivity extends Activity {
             case R.id.menu_clear:
                 mapView.clearMarkers();
                 return true;
+            case R.id.caestert_negative:
+            	load("caestert_negative.png");
+            	return true;
+            case R.id.caestert:
+            	load("caestert.png");
+            	return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

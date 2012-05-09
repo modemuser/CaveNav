@@ -3,4 +3,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/menu_clear"
           android:title="@string/menu_clear" />
+    <item android:id="@+id/choose_map"
+          android:title="@string/choose_map" >
+        <menu>
+            <item android:id="@+id/caestert_negative"
+                  android:title="@string/caestert_negative" />
+            <item android:id="@+id/caestert"
+                  android:title="@string/caestert" />
+        </menu>
+    </item>
 </menu>

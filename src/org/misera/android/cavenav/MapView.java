@@ -279,8 +279,6 @@ public class MapView extends View {
 	    }
 	}
 	
-	ArrayList<Float> headings = new ArrayList<Float>();
-	
 	private final SensorEventListener mListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
         	float _heading = event.values[0];
@@ -304,7 +302,6 @@ public class MapView extends View {
     
     private OnLongClickListener longClickListener = new OnLongClickListener() {
         public boolean onLongClick(View v) {
-        	clearMarkers();
 			return false;
         }
     };
