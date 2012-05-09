@@ -10,7 +10,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -19,6 +18,7 @@ import android.widget.LinearLayout;
 public class MapActivity extends Activity {
 	
 	Bitmap pic;
+	Bitmap map;
 	View view;
 	
     @Override
@@ -31,14 +31,15 @@ public class MapActivity extends Activity {
 		
 		try {
 			pic = getBitmapFromAsset("caestert_negative.png");
+			map = getBitmapFromAsset("canny.png");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		SensorManager mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-		view = new MapView(this, pic, mSensorManager);
-		
+		//view = new MapView(this, pic, mSensorManager);
+		view = new RayCastRendererView(this, map);
 
 		setContentView(R.layout.main);
 		LinearLayout v = (LinearLayout) findViewById(R.id.contentMain);
