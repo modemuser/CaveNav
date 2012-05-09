@@ -2,7 +2,8 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/menu_clear"
-          android:title="@string/menu_clear" />
+          android:title="@string/menu_clear"
+          android:showAsAction="ifRoom" />
     <item android:id="@+id/choose_map"
           android:title="@string/choose_map" >
         <menu>
@@ -10,6 +11,8 @@
                   android:title="@string/caestert_negative" />
             <item android:id="@+id/caestert"
                   android:title="@string/caestert" />
+            <item android:id="@+id/geogif"
+                  android:title="@string/geogif" />
         </menu>
     </item>
 </menu>

@@ -43,11 +43,13 @@ public class MapActivity extends Activity {
 		ArrayList<Point> vertices = new ArrayList<Point>();
 		ArrayList<Point[]> edges = new ArrayList<Point[]>();
 		
-		try {
-			vertices = getVertices();
-			//edges = getEdges(vertices);
-		} catch (JSONException e) {
-			e.printStackTrace();
+		if (filename.contains("caestert")) {
+			try {
+				vertices = getVertices();
+				//edges = getEdges(vertices);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
 		}
 		mapView = new MapView(this, pic, vertices, edges);
 		
@@ -88,6 +90,9 @@ public class MapActivity extends Activity {
             	return true;
             case R.id.caestert:
             	load("caestert.png");
+            	return true;
+            case R.id.geogif:
+            	load("geo.gif");
             	return true;
             default:
                 return super.onOptionsItemSelected(item);
