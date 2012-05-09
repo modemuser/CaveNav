@@ -112,8 +112,13 @@ public class RayCaster
 		}
 		
 		a[0] = (int) Math.floor((playerCenter[0] + ((playerCenter[1] - a[1]) / Math.tan(degToRad(angle)))));
-			
-		XaH = (int) Math.floor((YaH / Math.tan(degToRad(angle))));
+		
+		if(right){
+			XaH = (int) Math.floor((-gridSize / Math.tan(degToRad(angle))));
+		}
+		else{
+			XaH = (int) Math.floor((gridSize / Math.tan(degToRad(angle))));
+		}
 		
 		int[] gridCoords = new int[2];
 		int[] unitCoords = new int[2];
@@ -156,7 +161,12 @@ public class RayCaster
 		b[1] = (int) Math.floor(playerCenter[1] + (playerCenter[0] - b[0]) * Math.tan(degToRad(angle)));
 		
 		XaV = right ? gridSize : -gridSize;
-		YaV = (int) Math.floor(XaV * Math.tan(degToRad(angle)));
+		if(upward){
+			YaV = (int) Math.floor(-gridSize * Math.tan(degToRad(angle)));
+		}
+		else{
+			YaV = (int) Math.floor(gridSize * Math.tan(degToRad(angle)));			
+		}
 		
 		
 		int[] unitCoordsV = { b[0], b[1]  };
@@ -202,7 +212,7 @@ public class RayCaster
 				unitCoords = unitCoordsH;
 				distance = distanceH;
 			}
-			else if(distanceV <= distanceH && distanceV != 0 && collisionFoundV && inBoundsV){
+			else if(distanceV < distanceH && distanceV != 0 && collisionFoundV && inBoundsV){
 				Log.i("RayCaster", "Vertical Collision");
 
 				gridCoords = gridCoordsV;
