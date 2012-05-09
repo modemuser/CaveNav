@@ -26,16 +26,22 @@ public class MapView extends View {
 	private Display mDisplay;
 	private ArrayList<Point> vertices;
 	private ArrayList<Point[]> edges;
-    
+
+	private RayCastRendererView rayCastRenderer;	
+	private boolean hasRayCaster = false;
+
 	public MapView(Context context, Bitmap pic, ArrayList<Point> vertices, ArrayList<Point[]> edges) {
 		super(context);
 		this.pic = pic;
 		this.vertices = vertices;
 		this.edges = edges;
 			
-        DisplayMetrics dm = context.getResources().getDisplayMetrics();
-		screen.bottom = dm.heightPixels;
-		screen.right = dm.widthPixels;
+        //DisplayMetrics dm = context.getResources().getDisplayMetrics();
+		//screen.bottom = dm.heightPixels;
+		//screen.right = dm.widthPixels;
+		
+		screen.bottom = this.getHeight();
+		screen.right = this.getWidth();
 	    
 	    mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 		SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -56,9 +62,17 @@ public class MapView extends View {
 	protected void onCreate(Bundle savedValues) {
 	}
 	
+	public void setRayCaster(RayCastRendererView r){
+		this.rayCastRenderer = r;
+		hasRayCaster = true;
+	}
+	
 	@Override
     public void onDraw(Canvas canvas) {
 
+		screen.bottom = this.getHeight();
+		screen.right = this.getWidth();
+		
 		super.onDraw(canvas);
 	    canvas.save();
 		
@@ -134,6 +148,17 @@ public class MapView extends View {
 			canvas.drawLine(start[0], start[1], end[0], end[1], paint);
 		}
 		
+		if(hasRayCaster){
+			RayCaster rayCaster = rayCastRenderer.rayCaster;
+			
+			float[] coords = screenToMapCoords(angle, mPosX, mPosY);
+			rayCaster.playerPos[0] = (int) Math.floor(mPosX + centerX);
+			rayCaster.playerPos[1] = (int) Math.floor(mPosY + centerY);
+			rayCaster.viewingAngle = - angle + 90;
+			
+			rayCastRenderer.invalidate();
+			
+		}
 	    canvas.restore();
     }
 	
@@ -161,10 +186,10 @@ public class MapView extends View {
 	}
 	
 	
-	private float[] screenToMapCoords(float angle, float xMap,float yMap){
+	private float[] screenToMapCoords(float angle, float xScreen,float yScreen){
 
-		float x = xMap;
-		float y = yMap;
+		float x = xScreen;
+		float y = yScreen;
 
 		// Convert x,y to polar coords
 
@@ -226,6 +251,8 @@ public class MapView extends View {
 					// Remember this touch position for the next move event
 					mLastTouchX = x;
 					mLastTouchY = y;
+					
+
 
 					// Invalidate to request a redraw
 					invalidate();	

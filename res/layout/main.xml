@@ -4,4 +4,40 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <LinearLayout
+            android:id="@+id/contentMain"
+            android:layout_width="413dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.74" >
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/contentSide"
+            android:layout_width="310dp"
+            android:layout_height="match_parent" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical" >
+
+                <LinearLayout
+                    android:id="@+id/miniMap"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:orientation="vertical" >
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
 </LinearLayout>

@@ -17,11 +17,10 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 
 public class MapActivity extends Activity {
-	
-	View view;
-	
+		
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,15 +32,29 @@ public class MapActivity extends Activity {
 		Bitmap pic = getBitmapFromAsset("caestert_negative.png");
 		ArrayList<Point> vertices = null;
 		ArrayList<Point[]> edges = new ArrayList<Point[]>();
+		
 		try {
 			vertices = getVertices();
 			//edges = getEdges(vertices);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		view = new MapView(this, pic, vertices, edges);
-		setContentView(view);
-		view.requestFocus();        
+		MapView mapView = new MapView(this, pic, vertices, edges);
+		
+		
+		Bitmap map = getBitmapFromAsset("canny.png");
+
+		RayCastRendererView rayCastView = new RayCastRendererView(this, map);
+
+		setContentView(R.layout.main);
+		LinearLayout main = (LinearLayout) findViewById(R.id.contentMain);
+		main.addView(mapView);
+		
+		LinearLayout miniMap = (LinearLayout) findViewById(R.id.miniMap);
+		miniMap.addView(rayCastView);
+		
+		mapView.setRayCaster(rayCastView);
+		mapView.requestFocus();        
 
     }
     
