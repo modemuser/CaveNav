@@ -10,6 +10,7 @@ import android.view.*;
 import java.util.*;
 
 public class MapView extends View {
+	
 
 	private Bitmap pic;
     private Rect screen = new Rect();
@@ -23,17 +24,21 @@ public class MapView extends View {
 	private float angle = 0.f;
 	private float prevAngle = 0.f;
 	private Display mDisplay;
+	private ArrayList<Point> vertices;
+	private ArrayList<Point[]> edges;
     
-	public MapView(Context context, Bitmap pic, SensorManager mSensorManager) {
+	public MapView(Context context, Bitmap pic, ArrayList<Point> vertices, ArrayList<Point[]> edges) {
 		super(context);
 		this.pic = pic;
+		this.vertices = vertices;
+		this.edges = edges;
 			
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
 		screen.bottom = dm.heightPixels;
 		screen.right = dm.widthPixels;
 	    
 	    mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
-
+		SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         Sensor mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 	    mSensorManager.registerListener(mListener, mSensor, SensorManager.SENSOR_DELAY_GAME);
 		
@@ -44,7 +49,7 @@ public class MapView extends View {
 	    WindowManager mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 	    mDisplay = mWindowManager.getDefaultDisplay();
 	    
-	    // 0deg = 0; 90deg CW = 1; 180deg = 3; 90deg CCW = 3 
+	    // 0deg = 0; 90deg CW = 1; 180deg = 2; 90deg CCW = 3 
 	    Log.d("ORIENTATION_TEST", "getOrientation(): " + mDisplay.getOrientation());
 	}  
 	
@@ -94,8 +99,9 @@ public class MapView extends View {
 	    canvas.drawCircle(centerX, centerY, 1, paint);
 	    paint.setStyle(Paint.Style.STROKE);
 	    canvas.drawCircle(centerX, centerY, 3, paint);
+	    canvas.drawCircle(centerX, centerY, 5, paint);
 	    // debug overlay
-	    String debug = "angle: " + angle + "�, zoom: " + mScaleFactor + " (x,y): (" + mPosX + "," + mPosY + ") " ;
+	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f) %n", angle, mScaleFactor, mPosX, mPosY);
 	    if(scaling){
 			debug += "[SCALING] ";
 		}
@@ -107,7 +113,25 @@ public class MapView extends View {
 		for (Point p : markers) {
 			float[] coords = {p.x, p.y};
 			m.mapPoints(coords);
-			canvas.drawCircle(coords[0], coords[1], 1, paint);
+			canvas.drawCircle(coords[0], coords[1], mScaleFactor, paint);
+		}
+		// vertices
+		paint.setColor(Color.GREEN);
+		paint.setStyle(Paint.Style.FILL_AND_STROKE);
+		for (Point p : vertices) {
+			float[] coords = {p.x, p.y};
+			m.mapPoints(coords);
+			canvas.drawCircle(coords[0], coords[1], mScaleFactor, paint);
+		}
+		// edges
+		for (Point[] edge : edges) {
+			Point startCoords = edge[0];
+			float[] start = {startCoords.x, startCoords.y};
+			m.mapPoints(start);
+			Point endCoords = edge[1];
+			float[] end = {endCoords.x, endCoords.y};
+			m.mapPoints(end);
+			canvas.drawLine(start[0], start[1], end[0], end[1], paint);
 		}
 		
 	    canvas.restore();
@@ -242,7 +266,6 @@ public class MapView extends View {
                 invalidate();
         	}
             invalidate();
-
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
