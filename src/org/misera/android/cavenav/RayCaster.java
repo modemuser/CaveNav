@@ -16,7 +16,7 @@ public class RayCaster
 	
 	private int[] res = {320, 240};
 	
-	private int wallHeight = 64;
+	private int wallHeight = 128;
 	private int wallWidth = 64;
 	
 	private int gridSize = 64;

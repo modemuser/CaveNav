@@ -38,14 +38,18 @@ public class MapActivity extends Activity {
 		}
 
 		SensorManager mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-		//view = new MapView(this, pic, mSensorManager);
-		view = new RayCastRendererView(this, map);
+		MapView mapView = new MapView(this, map, mSensorManager);
+		RayCastRendererView rayCastView = new RayCastRendererView(this, map);
 
 		setContentView(R.layout.main);
-		LinearLayout v = (LinearLayout) findViewById(R.id.contentMain);
-		v.addView(view);
+		LinearLayout main = (LinearLayout) findViewById(R.id.contentMain);
+		main.addView(mapView);
 		
-		view.requestFocus();        
+		LinearLayout miniMap = (LinearLayout) findViewById(R.id.miniMap);
+		miniMap.addView(rayCastView);
+		
+		mapView.setRayCaster(rayCastView);
+		mapView.requestFocus();        
 
     }
     

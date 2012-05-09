@@ -11,7 +11,7 @@ import java.util.*;
 public class RayCastRendererView extends View
 {
 
-	private RayCaster rayCaster;
+	public RayCaster rayCaster;
 	private Bitmap mapImg;
 	
 	public RayCastRendererView(Context context, Bitmap mapImg){
@@ -34,7 +34,7 @@ public class RayCastRendererView extends View
 		Paint paint = new Paint();
 		int resX = this.getWidth();
 		int resY = this.getHeight();
-		double maxDistance = 300;
+		double maxDistance = 20;
 		int maxColor = 200;
 		
 		int middle = resY / 2;

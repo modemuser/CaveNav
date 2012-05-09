@@ -22,6 +22,10 @@ public class MapView extends View {
 	private float angle = 0.f;
 	private float prevAngle = 0.f;
     
+	private RayCastRendererView rayCastRenderer;
+	
+	private boolean hasRayCaster = false;
+	
 	public MapView(Context context, Bitmap pic, SensorManager mSensorManager) {
 		super(context);
 		this.pic = pic;
@@ -45,6 +49,11 @@ public class MapView extends View {
 	}  
 	
 	protected void onCreate(Bundle savedValues) {
+	}
+	
+	public void setRayCaster(RayCastRendererView r){
+		this.rayCastRenderer = r;
+		hasRayCaster = true;
 	}
 	
 	@Override
@@ -109,6 +118,17 @@ public class MapView extends View {
 			canvas.drawCircle(coords[0], coords[1], 1, paint);
 		}
 		
+		if(hasRayCaster){
+			RayCaster rayCaster = rayCastRenderer.rayCaster;
+			
+			float[] coords = screenToMapCoords(angle, mPosX, mPosY);
+			rayCaster.playerPos[0] = (int) Math.floor(mPosX + centerX);
+			rayCaster.playerPos[1] = (int) Math.floor(mPosY + centerY);
+			rayCaster.viewingAngle = - angle + 90;
+			
+			rayCastRenderer.invalidate();
+			
+		}
 	    canvas.restore();
     }
 	
@@ -136,10 +156,10 @@ public class MapView extends View {
 	}
 	
 	
-	private float[] screenToMapCoords(float angle, float xMap,float yMap){
+	private float[] screenToMapCoords(float angle, float xScreen,float yScreen){
 
-		float x = xMap;
-		float y = yMap;
+		float x = xScreen;
+		float y = yScreen;
 
 		// Convert x,y to polar coords
 
@@ -201,6 +221,8 @@ public class MapView extends View {
 					// Remember this touch position for the next move event
 					mLastTouchX = x;
 					mLastTouchY = y;
+					
+
 
 					// Invalidate to request a redraw
 					invalidate();	
