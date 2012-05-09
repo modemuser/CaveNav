@@ -22,6 +22,7 @@ public class MapView extends View {
 	private float mPosX;
 	private float mPosY;
 	private float angle = 0.f;
+	private float heading = 0.f;
 	private float prevAngle = 0.f;
 	private Display mDisplay;
 	private ArrayList<Point> vertices;
@@ -154,7 +155,7 @@ public class MapView extends View {
 			float[] coords = screenToMapCoords(angle, mPosX, mPosY);
 			rayCaster.playerPos[0] = (int) Math.floor(mPosX + centerX);
 			rayCaster.playerPos[1] = (int) Math.floor(mPosY + centerY);
-			rayCaster.viewingAngle = - angle + 90;
+			rayCaster.viewingAngle = heading + 90;
 			
 			rayCastRenderer.invalidate();
 			
@@ -282,14 +283,15 @@ public class MapView extends View {
 	
 	private final SensorEventListener mListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
-        	float heading = event.values[0];
+        	float _heading = event.values[0];
         	// make the heading compatible to the transform matrix:
         	// 1. invert sign of heading to turn the other way
         	// 2. take into account screen orientation
-        	float angleNew = -heading - 90*mDisplay.getOrientation();
+        	float angleNew = -_heading - 90*mDisplay.getOrientation();
         	// to smooth the rotation, only rotate if angle changes significantly
         	if (Math.abs(angle - angleNew) > 0.3) {
         		angle = angleNew;
+        		heading = _heading;
                 invalidate();
         	}
             invalidate();
