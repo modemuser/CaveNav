@@ -9,6 +9,10 @@ import android.view.*;
 
 import java.util.*;
 
+import org.misera.android.cavenav.graph.Edge;
+import org.misera.android.cavenav.graph.Graph;
+import org.misera.android.cavenav.graph.Vertex;
+
 public class MapView extends View {
 	
 
@@ -25,20 +29,18 @@ public class MapView extends View {
 	private float heading = 0.f;
 	private float prevAngle = 0.f;
 	private Display mDisplay;
-	private ArrayList<Point> vertices;
-	private ArrayList<Point[]> edges;
 
 	private RayCastRendererView rayCastRenderer;	
 	private boolean hasRayCaster = false;
 	
 	private boolean clickStepping = false;
 	private boolean showPaths = false;
+	private Graph graph;
 
-	public MapView(Context context, Bitmap pic, ArrayList<Point> vertices, ArrayList<Point[]> edges) {
+	public MapView(Context context, Bitmap pic, Graph graph) {
 		super(context);
 		this.pic = pic;
-		this.vertices = vertices;
-		this.edges = edges;
+		this.graph = graph;
 		
 		screen.bottom = this.getHeight();
 		screen.right = this.getWidth();
@@ -59,6 +61,7 @@ public class MapView extends View {
 	    Log.d("ORIENTATION_TEST", "getOrientation(): " + mDisplay.getOrientation());
 	}  
 	
+
 	protected void onCreate(Bundle savedValues) {
 	}
 	
@@ -130,7 +133,7 @@ public class MapView extends View {
 	    canvas.drawCircle(centerX, centerY, 3, paint);
 	    canvas.drawCircle(centerX, centerY, 5, paint);
 	    // debug overlay
-	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f) %d ", angle, mScaleFactor, mPosX, mPosY, edges.size());
+	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f) ", angle, mScaleFactor, mPosX, mPosY);
 	    if(scaling){
 			debug += "[SCALING] ";
 		}
@@ -148,18 +151,20 @@ public class MapView extends View {
 			// vertices
 			paint.setColor(Color.GREEN);
 			paint.setStyle(Paint.Style.FILL_AND_STROKE);
-			for (Point p : vertices) {
-				float[] coords = {p.x, p.y};
+			for (Integer key : graph.vertices.keySet()) {
+				Vertex v = graph.vertices.get(key);
+				float[] coords = {v.x, v.y};
 				m.mapPoints(coords);
 				canvas.drawCircle(coords[0], coords[1], mScaleFactor, paint);
 			}
 			// edges
-			for (Point[] edge : edges) {
-				Point startCoords = edge[0];
-				float[] start = {startCoords.x, startCoords.y};
+			for (Integer key : graph.edges.keySet()) {
+				Edge e = graph.edges.get(key);
+				Vertex startVertex = e.startVertex;
+				float[] start = {startVertex.x, startVertex.y};
 				m.mapPoints(start);
-				Point endCoords = edge[1];
-				float[] end = {endCoords.x, endCoords.y};
+				Vertex endVertex = e.endVertex;
+				float[] end = {endVertex.x, endVertex.y};
 				m.mapPoints(end);
 				canvas.drawLine(start[0], start[1], end[0], end[1], paint);
 			}
