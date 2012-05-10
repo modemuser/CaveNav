@@ -4,6 +4,9 @@
     <item android:id="@+id/menu_clear"
           android:title="@string/menu_clear"
           android:showAsAction="ifRoom" />
+    <item android:id="@+id/click_stepping"
+          android:title="@string/click_stepping"
+          android:checkable="true" />
     <item android:id="@+id/choose_map"
           android:title="@string/choose_map" >
         <menu>

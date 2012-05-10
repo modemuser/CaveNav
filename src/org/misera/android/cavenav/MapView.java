@@ -30,6 +30,8 @@ public class MapView extends View {
 
 	private RayCastRendererView rayCastRenderer;	
 	private boolean hasRayCaster = false;
+	
+	private boolean click_stepping = false;
 
 	public MapView(Context context, Bitmap pic, ArrayList<Point> vertices, ArrayList<Point[]> edges) {
 		super(context);
@@ -62,6 +64,10 @@ public class MapView extends View {
 	public void setRayCaster(RayCastRendererView r){
 		this.rayCastRenderer = r;
 		hasRayCaster = true;
+	}
+	
+	public void toggleClickStepping() {
+		this.click_stepping = !this.click_stepping;
 	}
 	
 	@Override
@@ -308,23 +314,25 @@ public class MapView extends View {
     	
 	private OnClickListener clickListener = new OnClickListener(){
 		public void onClick(View v){
-			float stepLength = 0.75f;
-			float pixelLength = 0.5f;
-			
-			float dx = 0;
-			float dy = -(stepLength / pixelLength);
-			
-			float[] transformed = mapToScreenCoords(angle, dx,dy);
-			mPosX += transformed[0];
-			mPosY += transformed[1];
-			
-			float centerX = screen.right/2;
-			float centerY = screen.bottom/2;
-			
-			markers.add(new Point((int) (mPosX + centerX), (int) (mPosY + centerY)));
-			//mPosX -= dx;
-			Log.i("clickAdvance", "PosX = " + mPosX);
-			invalidate();
+			if (click_stepping) {
+				float stepLength = 0.75f;
+				float pixelLength = 0.5f;
+				
+				float dx = 0;
+				float dy = -(stepLength / pixelLength);
+				
+				float[] transformed = mapToScreenCoords(angle, dx,dy);
+				mPosX += transformed[0];
+				mPosY += transformed[1];
+				
+				float centerX = screen.right/2;
+				float centerY = screen.bottom/2;
+				
+				markers.add(new Point((int) (mPosX + centerX), (int) (mPosY + centerY)));
+				//mPosX -= dx;
+				Log.i("clickAdvance", "PosX = " + mPosX);
+				invalidate();
+			}
 			//return false;
 		}
 	};

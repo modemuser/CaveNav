@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
@@ -84,6 +85,10 @@ public class MapActivity extends Activity {
         switch (item.getItemId()) {
             case R.id.menu_clear:
                 mapView.clearMarkers();
+                return true;
+            case R.id.click_stepping:
+            	item.setChecked(!item.isChecked());
+                mapView.toggleClickStepping();
                 return true;
             case R.id.caestert_negative:
             	load("caestert_negative.png");
