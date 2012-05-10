@@ -31,7 +31,8 @@ public class MapView extends View {
 	private RayCastRendererView rayCastRenderer;	
 	private boolean hasRayCaster = false;
 	
-	private boolean click_stepping = false;
+	private boolean clickStepping = false;
+	private boolean showPaths = false;
 
 	public MapView(Context context, Bitmap pic, ArrayList<Point> vertices, ArrayList<Point[]> edges) {
 		super(context);
@@ -67,8 +68,19 @@ public class MapView extends View {
 	}
 	
 	public void toggleClickStepping() {
-		this.click_stepping = !this.click_stepping;
+		this.clickStepping = !this.clickStepping;
 	}
+	
+	public void togglePaths() {
+		this.showPaths = !this.showPaths ;
+		invalidate();
+	}
+	
+    public void clearMarkers() {
+		markers.clear();
+		invalidate();
+    }
+	
 	
 	@Override
     public void onDraw(Canvas canvas) {
@@ -118,7 +130,7 @@ public class MapView extends View {
 	    canvas.drawCircle(centerX, centerY, 3, paint);
 	    canvas.drawCircle(centerX, centerY, 5, paint);
 	    // debug overlay
-	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f) %n", angle, mScaleFactor, mPosX, mPosY);
+	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f) %d ", angle, mScaleFactor, mPosX, mPosY, edges.size());
 	    if(scaling){
 			debug += "[SCALING] ";
 		}
@@ -132,23 +144,25 @@ public class MapView extends View {
 			m.mapPoints(coords);
 			canvas.drawCircle(coords[0], coords[1], mScaleFactor, paint);
 		}
-		// vertices
-		paint.setColor(Color.GREEN);
-		paint.setStyle(Paint.Style.FILL_AND_STROKE);
-		for (Point p : vertices) {
-			float[] coords = {p.x, p.y};
-			m.mapPoints(coords);
-			canvas.drawCircle(coords[0], coords[1], mScaleFactor, paint);
-		}
-		// edges
-		for (Point[] edge : edges) {
-			Point startCoords = edge[0];
-			float[] start = {startCoords.x, startCoords.y};
-			m.mapPoints(start);
-			Point endCoords = edge[1];
-			float[] end = {endCoords.x, endCoords.y};
-			m.mapPoints(end);
-			canvas.drawLine(start[0], start[1], end[0], end[1], paint);
+		if (showPaths) {
+			// vertices
+			paint.setColor(Color.GREEN);
+			paint.setStyle(Paint.Style.FILL_AND_STROKE);
+			for (Point p : vertices) {
+				float[] coords = {p.x, p.y};
+				m.mapPoints(coords);
+				canvas.drawCircle(coords[0], coords[1], mScaleFactor, paint);
+			}
+			// edges
+			for (Point[] edge : edges) {
+				Point startCoords = edge[0];
+				float[] start = {startCoords.x, startCoords.y};
+				m.mapPoints(start);
+				Point endCoords = edge[1];
+				float[] end = {endCoords.x, endCoords.y};
+				m.mapPoints(end);
+				canvas.drawLine(start[0], start[1], end[0], end[1], paint);
+			}
 		}
 		
 		if(hasRayCaster){
@@ -164,11 +178,6 @@ public class MapView extends View {
 	    canvas.restore();
     }
 
-    public void clearMarkers() {
-		markers.clear();
-		invalidate();
-    }
-	
 	private float[] mapToScreenCoords(float angle, float xMap,float yMap){
 		
 		float x = xMap;
@@ -314,7 +323,7 @@ public class MapView extends View {
     	
 	private OnClickListener clickListener = new OnClickListener(){
 		public void onClick(View v){
-			if (click_stepping) {
+			if (clickStepping) {
 				float stepLength = 0.75f;
 				float pixelLength = 0.5f;
 				

@@ -3,6 +3,7 @@ package org.misera.android.cavenav;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,7 +36,6 @@ public class MapActivity extends Activity {
         		WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
         	);
-		//requestWindowFeature(Window.FEATURE_NO_TITLE);
         load("caestert_negative.png");
 	} 
        
@@ -47,7 +47,7 @@ public class MapActivity extends Activity {
 		if (filename.contains("caestert")) {
 			try {
 				vertices = getVertices();
-				//edges = getEdges(vertices);
+				edges = getEdges();
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -85,6 +85,10 @@ public class MapActivity extends Activity {
         switch (item.getItemId()) {
             case R.id.menu_clear:
                 mapView.clearMarkers();
+                return true;
+            case R.id.toggle_paths:
+            	item.setChecked(!item.isChecked());
+                mapView.togglePaths();
                 return true;
             case R.id.click_stepping:
             	item.setChecked(!item.isChecked());
@@ -145,33 +149,46 @@ public class MapActivity extends Activity {
 		JSONObject json = new JSONObject(str);
 		JSONObject nodes = json.getJSONObject("nodes");
 		ArrayList<Point> out = new ArrayList<Point>();
-		// there are 946 nodes/vertices
-		for (int i=0; i<=946; i++) {
-			JSONObject coords = nodes.getJSONObject(Integer.toString(i)).getJSONObject("coordinates");
-			// translating the points because otherwise they seem off
-			int x = coords.getInt("x") - 7;
-			int y = coords.getInt("y") - 52;
-			out.add(new Point(x, y));
+		Iterator<String> nodeIds = nodes.keys();
+		while (nodeIds.hasNext()) {
+			JSONObject node = nodes.getJSONObject(nodeIds.next());
+			out.add(jsonToPoint(node));
 		}
 		return out;
 	}
+
+	private Point jsonToPoint(JSONObject node) throws JSONException {
+		JSONObject coords = node.getJSONObject("coordinates");
+		int x = coords.getInt("x") - 7;
+		int y = coords.getInt("y") - 52;
+		return new Point(x, y);
+	}
 	
 
-    private ArrayList<Point[]> getEdges(ArrayList<Point> vertices) throws JSONException {
+    private ArrayList<Point[]> getEdges() throws JSONException {
     	String str = getStringFromAsset("vertices.json");
-    	Log.d("FUCK", Integer.toString(str.length()));
 		JSONObject json = new JSONObject(str);
+		JSONObject vertices = json.getJSONObject("nodes");
 		JSONObject edges = json.getJSONObject("edges");
 		ArrayList<Point[]> out = new ArrayList<Point[]>();
-		
-		for (int i=0; i<=1621; i++) {
-			JSONObject endpoints = edges.getJSONObject(Integer.toString(i)).getJSONObject("nodes");
-	    	Log.d("FUCK", endpoints.toString());
-			Point start = vertices.get(endpoints.getInt("start"));
-			Point end = vertices.get(endpoints.getInt("end"));
-			Point[] newEdge = {start, end};
-			out.add(newEdge);
+		Iterator<String> edgeIds = edges.keys();
+		while (edgeIds.hasNext()) {
+			String edgeId = edgeIds.next();
+			JSONObject endpoints = edges.getJSONObject(edgeId).getJSONObject("nodes");
+			String startVertexId = endpoints.getString("start");
+			String endVertexId = endpoints.getString("end");
+			
+			if (vertices.has(startVertexId) && vertices.has(endVertexId)) {
+				Point start = jsonToPoint((JSONObject) vertices.get(startVertexId));
+				Point end = jsonToPoint((JSONObject) vertices.get(endVertexId));
+				Point[] newEdge = {start, end};
+				out.add(newEdge);
+			} else {
+				// there seem to be non-existing vertex id referenced in the json
+		    	Log.d("CaveNav", String.format("%d. vertex ids: %s", edgeId, endpoints.toString()));
+			}
 		}
+    	Log.d("CaveNav", "Edges: " + Integer.toString(out.size()));
 		return out;
 	}
 	
