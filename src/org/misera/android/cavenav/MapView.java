@@ -170,7 +170,7 @@ public class MapView extends View {
 			
 			rayCaster.playerPos[0] = (int) Math.floor(mPosX + centerX);
 			rayCaster.playerPos[1] = (int) Math.floor(mPosY + centerY);
-			rayCaster.viewingAngle = heading + 90;
+			rayCaster.viewingAngle =  - heading + 90 + 180;
 			
 			rayCastRenderer.invalidate();
 			

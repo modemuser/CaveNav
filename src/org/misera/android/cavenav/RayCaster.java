@@ -63,13 +63,14 @@ public class RayCaster
 	public Ray[] castRays(){
 		Ray[] out = new Ray[res[0]];
 		
-		double angle = this.viewingAngle - this.FOV/2;
+		// Start at left and render to the right (else the image is mirrored)
+		double angle = this.viewingAngle + this.FOV/2;
 		for(int i = 0; i < this.res[0]; i++){
 			
 			Ray wallPiece = castRay(angle);
 			out[i] = wallPiece;
 			
-			angle += this.column;
+			angle -= this.column;
 			
 			//Log.i("RayCaster", "Angle: " + angle);
 		}
@@ -92,6 +93,7 @@ public class RayCaster
 		boolean upward = angle < 180;
 		boolean right = angle < 90 || angle > 270;
 		//boolean vertical = (angle > 315 || angle < 45) || (angle > 135 && angle < 225);
+		Log.i("RayCaster","Angle: " + angle + " Upward: " + upward + " Right: " + right );
 		
 
 		// First horizontal intersection point
@@ -105,21 +107,31 @@ public class RayCaster
 		if(upward){
 			a[1] = (int) Math.floor(playerCenter[1] / gridSize) * gridSize - 1;
 			YaH = -gridSize;
+			if(right){
+				XaH = (int) Math.floor((gridSize / Math.tan(degToRad(angle))));
+			}
+			else{
+				XaH = (int) Math.floor((gridSize / Math.tan(degToRad(angle))));				
+			}
 		}
 		else{
 			a[1] = (int) Math.floor(playerCenter[1] / gridSize) * gridSize + gridSize;
 			YaH = gridSize;
+			if(right){
+				// Length calculation will be negative here (angle > 270), need positive instead
+				XaH = (int) - Math.floor((gridSize / Math.tan(degToRad(angle))));			
+			}
+			else{
+				// Length calculation will be positive here (angle > 180), need negative instead
+				XaH = (int) - Math.floor((gridSize / Math.tan(degToRad(angle))));				
+			}
 		}
 		
 		a[0] = (int) Math.floor((playerCenter[0] + ((playerCenter[1] - a[1]) / Math.tan(degToRad(angle)))));
 		
-		if(right){
-			XaH = (int) Math.floor((-gridSize / Math.tan(degToRad(angle))));
-		}
-		else{
-			XaH = (int) Math.floor((gridSize / Math.tan(degToRad(angle))));
-		}
+
 		
+		Log.i("RayCaster", "X|Y(H): " + XaH + "|" + YaH);
 		int[] gridCoords = new int[2];
 		int[] unitCoords = new int[2];
 		
@@ -154,20 +166,30 @@ public class RayCaster
 		
 		if(right){
 			b[0] = (int) Math.floor(playerCenter[0] / gridSize) * gridSize + gridSize;
+			XaV = gridSize;
+			if(upward){
+				// Length calculation will be positive (angle < 90), need negative
+				YaV = (int) - Math.floor(gridSize * Math.tan(degToRad(angle)));
+			}
+			else{
+				YaV = (int) - Math.floor(gridSize * Math.tan(degToRad(angle)));			
+			}
 		}
 		else{
+			XaV = -gridSize;
 			b[0] = (int) Math.floor(playerCenter[0] / gridSize) * gridSize -1;
+			if(upward){
+				YaV = (int) Math.floor(gridSize * Math.tan(degToRad(angle)));
+			}
+			else{
+				YaV = (int) Math.floor(gridSize * Math.tan(degToRad(angle)));			
+			}
 		}	
 		b[1] = (int) Math.floor(playerCenter[1] + (playerCenter[0] - b[0]) * Math.tan(degToRad(angle)));
 		
-		XaV = right ? gridSize : -gridSize;
-		if(upward){
-			YaV = (int) Math.floor(-gridSize * Math.tan(degToRad(angle)));
-		}
-		else{
-			YaV = (int) Math.floor(gridSize * Math.tan(degToRad(angle)));			
-		}
-		
+
+		Log.i("RayCaster", "X|Y(V): " + XaV + "|" + YaV);
+
 		
 		int[] unitCoordsV = { b[0], b[1]  };
 		int[] gridCoordsV = { unitCoordsV[0] / gridSize, unitCoordsV[1] / gridSize };

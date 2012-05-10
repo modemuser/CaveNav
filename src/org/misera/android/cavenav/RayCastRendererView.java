@@ -34,7 +34,7 @@ public class RayCastRendererView extends View
 		Paint paint = new Paint();
 		int resX = this.getWidth();
 		int resY = this.getHeight();
-		double maxDistance = 50;
+		double maxDistance = 80;
 		int maxColor = 200;
 		
 		int middle = resY / 2;
@@ -44,7 +44,9 @@ public class RayCastRendererView extends View
 		this.rayCaster.setResolution(res);
 		
 		Ray[] rays = this.rayCaster.castRays();
+
 		for(int i = 0; i < rays.length; i++){
+
 			Ray ray = rays[i];
 			int id = ray.id;
 			int distance = (int) Math.min(ray.distance, maxDistance);
