@@ -101,17 +101,17 @@ public class RayCaster
 		// First vertical intersection point
 		int[] b = new int[2];
 		
-		int YaH;
-		int XaH;
+		double YaH;
+		double XaH;
 		
 		if(upward){
 			a[1] = (int) Math.floor(playerCenter[1] / gridSize) * gridSize - 1;
 			YaH = -gridSize;
 			if(right){
-				XaH = (int) Math.floor((gridSize / Math.tan(degToRad(angle))));
+				XaH = (gridSize / Math.tan(degToRad(angle)));
 			}
 			else{
-				XaH = (int) Math.floor((gridSize / Math.tan(degToRad(angle))));				
+				XaH = (gridSize / Math.tan(degToRad(angle)));				
 			}
 		}
 		else{
@@ -119,11 +119,11 @@ public class RayCaster
 			YaH = gridSize;
 			if(right){
 				// Length calculation will be negative here (angle > 270), need positive instead
-				XaH = (int) - Math.floor((gridSize / Math.tan(degToRad(angle))));			
+				XaH = - (gridSize / Math.tan(degToRad(angle)));			
 			}
 			else{
 				// Length calculation will be positive here (angle > 180), need negative instead
-				XaH = (int) - Math.floor((gridSize / Math.tan(degToRad(angle))));				
+				XaH = - (gridSize / Math.tan(degToRad(angle)));				
 			}
 		}
 		
@@ -151,8 +151,8 @@ public class RayCaster
 				distanceH = Math.sqrt(dA + dB);
 				break;	
 			}	
-			unitCoordsH[0] = unitCoordsH[0] + XaH;
-			unitCoordsH[1] = unitCoordsH[1] + YaH;
+			unitCoordsH[0] = (int) Math.floor(unitCoordsH[0] + XaH);
+			unitCoordsH[1] = (int) Math.floor(unitCoordsH[1] + YaH);
 
 			gridCoordsH[0] = (int) Math.floor(unitCoordsH[0] / gridSize);
 			gridCoordsH[1] = (int) Math.floor(unitCoordsH[1] / gridSize);
@@ -161,28 +161,28 @@ public class RayCaster
 		}
 		
 		
-		int XaV;
-		int YaV;
+		double XaV;
+		double YaV;
 		
 		if(right){
 			b[0] = (int) Math.floor(playerCenter[0] / gridSize) * gridSize + gridSize;
 			XaV = gridSize;
 			if(upward){
 				// Length calculation will be positive (angle < 90), need negative
-				YaV = (int) - Math.floor(gridSize * Math.tan(degToRad(angle)));
+				YaV = - gridSize * Math.tan(degToRad(angle));
 			}
 			else{
-				YaV = (int) - Math.floor(gridSize * Math.tan(degToRad(angle)));			
+				YaV = - gridSize * Math.tan(degToRad(angle));			
 			}
 		}
 		else{
 			XaV = -gridSize;
 			b[0] = (int) Math.floor(playerCenter[0] / gridSize) * gridSize -1;
 			if(upward){
-				YaV = (int) Math.floor(gridSize * Math.tan(degToRad(angle)));
+				YaV = gridSize * Math.tan(degToRad(angle));
 			}
 			else{
-				YaV = (int) Math.floor(gridSize * Math.tan(degToRad(angle)));			
+				YaV = gridSize * Math.tan(degToRad(angle));			
 			}
 		}	
 		b[1] = (int) Math.floor(playerCenter[1] + (playerCenter[0] - b[0]) * Math.tan(degToRad(angle)));
@@ -207,8 +207,8 @@ public class RayCaster
 				distanceV = Math.sqrt(dA + dB);
 				break;	
 			}	
-			unitCoordsV[0] = unitCoordsV[0] + XaV;
-			unitCoordsV[1] = unitCoordsV[1] + YaV;
+			unitCoordsV[0] = (int) Math.floor(unitCoordsV[0] + XaV);
+			unitCoordsV[1] = (int) Math.floor(unitCoordsV[1] + YaV);
 
 			gridCoordsV[0] = (int) Math.floor(unitCoordsV[0] / gridSize);
 			gridCoordsV[1] = (int) Math.floor(unitCoordsV[1] / gridSize);
