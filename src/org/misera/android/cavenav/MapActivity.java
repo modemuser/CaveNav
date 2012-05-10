@@ -26,6 +26,9 @@ import android.widget.LinearLayout;
 public class MapActivity extends Activity {
 		
     private MapView mapView;
+    private RayCastRendererView rayCastView;
+    
+    private boolean mapIsMainView = true;
 
 
 	@Override
@@ -57,7 +60,7 @@ public class MapActivity extends Activity {
 		
 		Bitmap map = getBitmapFromAsset("canny.png");
 
-		RayCastRendererView rayCastView = new RayCastRendererView(this, map);
+		rayCastView = new RayCastRendererView(this, map);
 
 		setContentView(R.layout.main);
 		LinearLayout main = (LinearLayout) findViewById(R.id.contentMain);
@@ -70,6 +73,28 @@ public class MapActivity extends Activity {
 		mapView.requestFocus();        
 
     }
+	
+	private void toggleSwitchView(){
+		LinearLayout main = (LinearLayout) findViewById(R.id.contentMain);
+		LinearLayout miniMap = (LinearLayout) findViewById(R.id.miniMap);
+		
+		if(mapIsMainView){
+			main.removeView(mapView);
+			miniMap.removeView(rayCastView);
+			
+			main.addView(rayCastView,0);
+			miniMap.addView(mapView, 0);
+		}
+		else{
+			main.removeView(rayCastView);
+			miniMap.removeView(mapView);
+			
+			main.addView(mapView,0);
+			miniMap.addView(rayCastView, 0);			
+		}
+
+		mapIsMainView = !mapIsMainView;
+	}
     
     
     @Override
@@ -102,6 +127,9 @@ public class MapActivity extends Activity {
             	return true;
             case R.id.geogif:
             	load("geo.gif");
+            	return true;
+            case R.id.switch_views:
+            	toggleSwitchView();
             	return true;
             default:
                 return super.onOptionsItemSelected(item);

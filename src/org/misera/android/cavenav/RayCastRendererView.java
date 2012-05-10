@@ -77,18 +77,7 @@ public class RayCastRendererView extends View
 	
 	private OnClickListener clickListener = new OnClickListener(){
 		public void onClick(View v){
-			float stepLength = 0.75f;
-			float pixelLength = 0.5f;
 			
-			float dx = 1;
-			float dy = -(stepLength / pixelLength);
-			
-			rayCaster.playerPos[0] = (int) (rayCaster.playerPos[0] + dx);
-			rayCaster.viewingAngle += 10;
-			//Log.i("RayCaster", "Player pos: (" + rayCaster.playerPos[0] + "|" + rayCaster.playerPos[1] + ")");
-			
-			invalidate();
-			//return false;
 		}
 	};
 }
