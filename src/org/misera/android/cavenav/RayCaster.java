@@ -93,7 +93,7 @@ public class RayCaster
 		boolean upward = angle < 180;
 		boolean right = angle < 90 || angle > 270;
 		//boolean vertical = (angle > 315 || angle < 45) || (angle > 135 && angle < 225);
-		Log.i("RayCaster","Angle: " + angle + " Upward: " + upward + " Right: " + right );
+		//Log.i("RayCaster","Angle: " + angle + " Upward: " + upward + " Right: " + right );
 		
 
 		// First horizontal intersection point
@@ -131,7 +131,7 @@ public class RayCaster
 		
 
 		
-		Log.i("RayCaster", "X|Y(H): " + XaH + "|" + YaH);
+		//Log.i("RayCaster", "X|Y(H): " + XaH + "|" + YaH);
 		int[] gridCoords = new int[2];
 		int[] unitCoords = new int[2];
 		
@@ -188,7 +188,7 @@ public class RayCaster
 		b[1] = (int) Math.floor(playerCenter[1] + (playerCenter[0] - b[0]) * Math.tan(degToRad(angle)));
 		
 
-		Log.i("RayCaster", "X|Y(V): " + XaV + "|" + YaV);
+		//Log.i("RayCaster", "X|Y(V): " + XaV + "|" + YaV);
 
 		
 		int[] unitCoordsV = { b[0], b[1]  };
@@ -216,34 +216,47 @@ public class RayCaster
 			inBoundsV = map.length > gridCoordsV[1] && map[0].length > gridCoordsV[0] && gridCoordsV[0] >= 0 && gridCoordsV[1] >= 0;
 		}
 		
+		distanceH = distanceH >= 0 ? distanceH * Math.cos(degToRad(angle - this.viewingAngle)) : 0;
+		distanceV = distanceV >= 0 ? distanceV * Math.cos(degToRad(angle - this.viewingAngle)) : 0;		
 		
-		if((!collisionFoundH && !collisionFoundV) || (!inBoundsH && !inBoundsV)){
+		if((!collisionFoundH && !collisionFoundV) || (!inBoundsH && !inBoundsV) || (distanceH <= 0 && distanceV <= 0)){
 			id = RayCaster.BOUNDARY;
-			distance = distanceV;
+			distance = Double.POSITIVE_INFINITY;
 		}
 		else{
-			distanceH = distanceH != 0 ? distanceH * Math.cos(degToRad(angle - this.viewingAngle)) : 0;
-			distanceV = distanceV != 0 ? distanceV * Math.cos(degToRad(angle - this.viewingAngle)) : 0;
+
 			if(distanceH == distanceV){
-				Log.i("RayCaster", "Same Distances");
+				Log.i("RayCaster", "Same Distances, choose H");
+				gridCoords = gridCoordsH;
+				unitCoords = unitCoordsH;
+				distance = distanceH;	
 			}
-			if(distanceH < distanceV && distanceH != 0 && collisionFoundH && inBoundsH){
-				Log.i("RayCaster", "Horizontal Collision");
+			if((collisionFoundH && !collisionFoundV) || (collisionFoundH && collisionFoundV && distanceH < distanceV)){
+				//Log.i("RayCaster", "Horizontal Collision distance:" + distanceH);
 
 				gridCoords = gridCoordsH;
 				unitCoords = unitCoordsH;
-				distance = distanceH;
+				distance = distanceH;					
 			}
-			else if(distanceV < distanceH && distanceV != 0 && collisionFoundV && inBoundsV){
-				Log.i("RayCaster", "Vertical Collision");
+
+			//Log.i("RayCaster", "Vertical Collision");
+			else if((collisionFoundV && !collisionFoundH) || (collisionFoundV && collisionFoundH && distanceV < distanceH)){
+				//Log.i("RayCaster", "Vertical Collision distance:" + distanceV);
 
 				gridCoords = gridCoordsV;
 				unitCoords = unitCoordsV;
-				distance = distanceV;
+				distance = distanceV;					
+			}
+		
+			else{
+				//Log.e("RayCaster", "No collision detected but still made it into the detection logic branch");
 			}
 			
-			
+			if(distance <= 0){
+				Log.e("RayCaster", "Distance " + distance + " <= 0");
+			}			
 			distance = distance / this.gridSize;
+
 			double playerDistance = playerPlaneDistance();
 			// Remove distortion
 			//distance = distance * Math.cos(degToRad(angle - this.viewingAngle));
