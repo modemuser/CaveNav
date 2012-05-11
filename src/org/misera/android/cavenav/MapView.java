@@ -8,7 +8,6 @@ import android.hardware.*;
 import android.os.*;
 import android.util.*;
 import android.view.*;
-import android.view.ViewGroup.MarginLayoutParams;
 
 import org.misera.android.cavenav.graph.AStar;
 import org.misera.android.cavenav.graph.Edge;
@@ -42,6 +41,7 @@ public class MapView extends View {
 	private int centerX;
 	private int centerY;
 	ArrayList<Edge> route = new ArrayList<Edge>();
+	private double routeLength = 0;
 
 	public MapView(Context context, Bitmap pic, Graph graph) {
 		super(context);
@@ -87,6 +87,7 @@ public class MapView extends View {
 	
     public void clearMarkers() {
 		this.map.clearMarkers();
+		this.route.clear();
 		invalidate();
     }
 
@@ -98,6 +99,9 @@ public class MapView extends View {
 			p = map.markers.get(1);
 			Vertex goal = graph.nearestVertex(p.x, p.y);
 			route = aStar.getRoute(start, goal);
+			for (Edge e : route) {
+				routeLength  += e.length;
+			}
 		}
 	}
     
@@ -155,7 +159,7 @@ public class MapView extends View {
 	    canvas.drawCircle(centerX, centerY, 5, paint);
 	    
 	    // debug overlay
-	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f) (%.0f,%.0f)", angle, mScaleFactor, mPosX, mPosY, mLastTouchX, mLastTouchY);
+	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f), route length: %.1fm", angle, mScaleFactor, mPosX, mPosY, routeLength/2);
 	    if(scaling){
 			debug += "[SCALING] ";
 		}
@@ -334,6 +338,9 @@ public class MapView extends View {
     
     private OnLongClickListener longClickListener = new OnLongClickListener() {
         public boolean onLongClick(View v) {
+        	if (map.markers.size() > 1) {
+        		return true;
+        	}
 			float[] coords = screenToMapCoords(mLastTouchX, mLastTouchY);
         	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
     		//map.addMarker((int)coords[0], (int)coords[1]);

@@ -33,20 +33,6 @@ public class AStar {
 				neighbor.h = getDistance(goal, neighbor);
 				neighbor.g = current.g + getDistance(current, neighbor);
 				neighbor.f = neighbor.g + neighbor.h;
-				/*
-				if ((closedSet.contains(neighbor) && current.g < neighbor.g) ||
-					(openSet.contains(neighbor) && current.g < neighbor.g)) {
-					neighbor.g = current.g + neighbor.h;
-					neighbor.f = neighbor.g + neighbor.h;
-					neighbor.prevOnRoute = current;
-				}
-				else if (!closedSet.contains(neighbor) && !openSet.contains(neighbor)) {
-					neighbor.g = current.g + neighbor.h;
-					neighbor.f = neighbor.g + neighbor.h;
-					openSet.add(neighbor);
-				}
-				
-				*/
 				if (closedSet.contains(neighbor)) {
 					continue;
 				}

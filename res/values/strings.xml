@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CaveNav</string>
-    <string name="menu_clear">Clear markers</string>
+    <string name="menu_clear">Clear</string>
     <string name="click_stepping">Click stepping</string>
     <string name="toggle_paths">Toggle paths</string>
     <string name="choose_map">Choose map...</string>

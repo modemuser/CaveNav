@@ -1,6 +1,5 @@
 package org.misera.android.cavenav.graph;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -57,6 +56,12 @@ public class Graph {
 		} else {
 			return null;
 		}
+	}
+	
+	public static double getDistance(Vertex v1, Vertex v2) {
+		int a = v1.x - v2.x;
+		int b = v1.y - v2.y;
+		return Math.sqrt(a*a + b*b);
 	}
 
 	private double distance(int posX, int posY, Vertex v) {
