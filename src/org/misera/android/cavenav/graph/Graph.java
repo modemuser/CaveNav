@@ -23,6 +23,29 @@ public class Graph {
 			e.printStackTrace();
 		}
 	}
+	
+	public Vertex nearestVertex(int posX, int posY) {
+		Vertex out = null;
+		double distOut = Integer.MAX_VALUE;
+		for (Integer key : vertices.keySet()) {
+			Vertex v = vertices.get(key);
+			if (out == null) {
+				out = v;
+				distOut = distance(posX, posY, out);
+			} else {
+				double distV = distance(posX, posY, v);
+				if (distV < distOut) {
+					out = v;
+					distOut = distV;
+				}
+			}
+		}
+		return out;
+	}
+
+	private double distance(int posX, int posY, Vertex v) {
+		return Math.sqrt((v.x-posX)^2 + (v.y-posY)^2);
+	}
 
 	private HashMap<Integer, Vertex> readVertices(JSONObject json) throws JSONException {
 		HashMap<Integer,Vertex> vertices = new HashMap<Integer,Vertex>();

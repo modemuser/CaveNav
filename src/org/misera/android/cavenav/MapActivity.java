@@ -37,13 +37,13 @@ public class MapActivity extends Activity {
        
 	private void load(String filename) {	
 		Bitmap pic = getBitmapFromAsset(filename);
-		String json = getStringFromAsset("vertices.json");
+		String json = getStringFromAsset("caestert.json");
 		Graph graph = new Graph(json);
 		
 		mapView = new MapView(this, pic, graph);
 		
 		
-		Bitmap map = getBitmapFromAsset("canny.png");
+		Bitmap map = getBitmapFromAsset("caestert_canny.png");
 
 		rayCastView = new RayCastRendererView(this, map);
 

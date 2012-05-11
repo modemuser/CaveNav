@@ -83,25 +83,24 @@ public class MapView extends View {
 		markers.clear();
 		invalidate();
     }
-	
+    
 	
 	@Override
     public void onDraw(Canvas canvas) {
-
-		screen.bottom = this.getHeight();
-		screen.right = this.getWidth();
-		
 		super.onDraw(canvas);
 	    canvas.save();
-		
+	    
 	    Matrix m = new Matrix();
-	    float centerX = screen.right/2;
-	    float centerY = screen.bottom/2;
+	    
+		screen.bottom = this.getHeight();
+		screen.right = this.getWidth();
+
+    	int centerX = screen.right/2;
+    	int centerY = screen.bottom/2;
 
 		float x = mPosX;
 		float y = mPosY;
 
-		
 		/* 
 			Convert the point that is C in the viewport coordinate system
 			to map coordinate system and move it to (0,0)
@@ -322,6 +321,13 @@ public class MapView extends View {
     
     private OnLongClickListener longClickListener = new OnLongClickListener() {
         public boolean onLongClick(View v) {
+			float[] coords = screenToMapCoords(angle, mLastTouchX, mLastTouchY);
+        	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
+    		markers.add(new Point((int)coords[0], (int)coords[1]));
+        	if (vertex != null) {
+        		//markers.add(new Point(vertex.x, vertex.y));
+        		Log.d("CaveNav", vertex.toString());
+        	}
 			return false;
         }
     };

@@ -19,4 +19,7 @@ public class Vertex {
 		this.edges.add(edge);
 	}
 
+	public String toString() {
+		return String.format("<Vertex (%d,%d)>", this.x, this.y);
+	}
 }
