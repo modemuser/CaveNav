@@ -88,6 +88,7 @@ public class MapView extends View {
     public void clearMarkers() {
 		this.map.clearMarkers();
 		this.route.clear();
+		routeLength = 0;
 		invalidate();
     }
 
