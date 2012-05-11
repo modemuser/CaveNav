@@ -1,12 +1,16 @@
 package org.misera.android.cavenav;
 
+import java.util.ArrayList;
+
 import android.content.*;
 import android.graphics.*;
 import android.hardware.*;
 import android.os.*;
 import android.util.*;
 import android.view.*;
+import android.view.ViewGroup.MarginLayoutParams;
 
+import org.misera.android.cavenav.graph.AStar;
 import org.misera.android.cavenav.graph.Edge;
 import org.misera.android.cavenav.graph.Graph;
 import org.misera.android.cavenav.graph.Vertex;
@@ -37,6 +41,7 @@ public class MapView extends View {
 	private Matrix screenToMapMatrix;
 	private int centerX;
 	private int centerY;
+	ArrayList<Edge> route = new ArrayList<Edge>();
 
 	public MapView(Context context, Bitmap pic, Graph graph) {
 		super(context);
@@ -84,6 +89,17 @@ public class MapView extends View {
 		this.map.clearMarkers();
 		invalidate();
     }
+
+	public void route() {
+		if (map.markers.size() > 1) {
+			AStar aStar = new AStar(graph);
+			Point p = map.markers.get(0);
+			Vertex start = graph.nearestVertex(p.x, p.y);
+			p = map.markers.get(1);
+			Vertex goal = graph.nearestVertex(p.x, p.y);
+			route = aStar.getRoute(start, goal);
+		}
+	}
     
     private void updateMapToScreenMatrix() {
     	mapToScreenMatrix.reset();
@@ -167,6 +183,18 @@ public class MapView extends View {
 				mapToScreenMatrix.mapPoints(end);
 				canvas.drawLine(start[0], start[1], end[0], end[1], paint);
 			}
+		}
+		
+		// route
+		for (Edge e : route) {
+			paint.setColor(Color.YELLOW);
+			Vertex startVertex = e.startVertex;
+			float[] start = {startVertex.x, startVertex.y};
+			mapToScreenMatrix.mapPoints(start);
+			Vertex endVertex = e.endVertex;
+			float[] end = {endVertex.x, endVertex.y};
+			mapToScreenMatrix.mapPoints(end);
+			canvas.drawLine(start[0], start[1], end[0], end[1], paint);
 		}
 		
 		if(hasRayCaster){
@@ -311,6 +339,7 @@ public class MapView extends View {
     		//map.addMarker((int)coords[0], (int)coords[1]);
         	if (vertex != null) {
         		map.addMarker(vertex.x, vertex.y);
+        		invalidate();
         	}
 			return false;
         }
@@ -337,4 +366,5 @@ public class MapView extends View {
 			//return false;
 		}
 	};
+
 }

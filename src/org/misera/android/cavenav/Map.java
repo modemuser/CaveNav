@@ -12,7 +12,7 @@ import android.graphics.Point;
 public class Map {
 	
 	private Bitmap pic;
-    private ArrayList<Point> markers;
+    public ArrayList<Point> markers;
 
 	public Map(Bitmap pic) {
 		this.pic = pic;

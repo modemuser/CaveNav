@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:id="@+id/switch_views" android:title="@string/switch_views" android:checkable="false"></item><item android:id="@+id/menu_clear"
+	<item android:id="@+id/route"
+          android:title="@string/route"
+          android:showAsAction="ifRoom" />
+    <item android:id="@+id/switch_views" android:title="@string/switch_views" android:checkable="false"></item>
+    <item android:id="@+id/menu_clear"
           android:title="@string/menu_clear"
           android:showAsAction="ifRoom" />
     <item android:id="@+id/click_stepping"

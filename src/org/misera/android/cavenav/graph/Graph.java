@@ -1,5 +1,6 @@
 package org.misera.android.cavenav.graph;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -22,6 +23,17 @@ public class Graph {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public Edge findEdge(Vertex v1, Vertex v2) {
+		for (Integer key : edges.keySet()) {
+			Edge e = edges.get(key);
+			if ((e.startVertex == v1 || e.startVertex == v2) && (e.endVertex == v1 || e.endVertex == v2)) {
+				return e;
+			}
+		}
+		Log.e("CaveNav", String.format("No edge found with %s %s", v1, v2));
+		return null;
 	}
 	
 	public Vertex nearestVertex(int posX, int posY) {
@@ -94,6 +106,5 @@ public class Graph {
 		}
 		return edges;
 	}
-	
 
 }

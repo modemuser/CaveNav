@@ -93,6 +93,9 @@ public class MapActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
+        	case R.id.route:
+        		mapView.route();
+        		return true;
             case R.id.menu_clear:
                 mapView.clearMarkers();
                 return true;
