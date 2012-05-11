@@ -1,73 +1,46 @@
 package org.misera.android.cavenav;
 
+import java.util.ArrayList;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Rect;
-import android.util.Log;
+import android.graphics.Paint;
+import android.graphics.Point;
 
 public class Map {
 	
 	private Bitmap pic;
-	private float rotX;
-	private float rotY;
-	private float angle = 0;
-	private float focusX;
-	private float focusY;
-	private float scale = 1;
-	private float transX = 0;
-	private float transY = 0;
+    private ArrayList<Point> markers;
 
 	public Map(Bitmap pic) {
 		this.pic = pic;
-	}
-
-	public void setRotation(double angle, double rotX, double rotY) {
-		this.angle = (float) angle;
-		this.rotX = (float) rotX;
-		this.rotY = (float) rotY;
+		this.markers = new ArrayList<Point>();
 	}
 	
-	public void setScaling(double scale, double focusX, double focusY) {
-		this.scale = (float) scale;
-		this.focusX = (float) focusX;
-		this.focusY = (float) focusY;
-	}
-
-	public void setTranslation(double transX, double transY) {
-		this.transX = (float) transX;
-		this.transY = (float) transY;
-	}
+	public Canvas draw(Canvas canvas, Matrix m, float scale) {
+		// draw pic
+		canvas.drawBitmap(pic, m, null);
 		
-	public void draw(Canvas canvas) {
-		canvas.drawBitmap(pic, getMatrix(), null);
+		// draw markers
+		Paint paint = new Paint();
+		paint.setColor(Color.YELLOW);
+		paint.setStyle(Paint.Style.FILL_AND_STROKE);
+		for (Point p : markers) {
+			float[] coords = {p.x, p.y};
+			m.mapPoints(coords);
+			canvas.drawCircle(coords[0], coords[1], 5*scale, paint);
+		}
+		return canvas;
 	}
 	
-	public float[] toMapCoords(float[] input) {
-		//getMatrix().mapPoints(input);
-		return input;
+	public void addMarker(int mapPosX, int mapPosY) {
+		this.markers.add(new Point(mapPosX, mapPosY));
 	}
-	
-	private Matrix getMatrix() {
-		Matrix matrix = new Matrix();
-		
-		Matrix scaleMatrix = new Matrix();
-		//scaleMatrix.postTranslate(-focusX, -focusY);
-	    scaleMatrix.postScale(scale, scale, focusX, focusY);
-		//scaleMatrix.postTranslate(focusX, focusY);
-		
 
-		Matrix rotationMatrix = new Matrix();
-	    rotationMatrix.postRotate(angle, rotX-transX, rotY-transY);
-	    
-
-		Matrix translationMatrix = new Matrix();
-		translationMatrix.postTranslate(transX, transY);
-		
-		matrix.postConcat(scaleMatrix);
-		matrix.postConcat(rotationMatrix);
-		matrix.postConcat(translationMatrix);
-		return matrix;
+	public void clearMarkers() {
+		this.markers.clear();
 	}
+		
 }

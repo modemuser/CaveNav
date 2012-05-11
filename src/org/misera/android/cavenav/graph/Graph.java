@@ -40,11 +40,17 @@ public class Graph {
 				}
 			}
 		}
-		return out;
+		if (distOut < 50) {
+			return out;
+		} else {
+			return null;
+		}
 	}
 
 	private double distance(int posX, int posY, Vertex v) {
-		return Math.sqrt((v.x-posX)^2 + (v.y-posY)^2);
+		int a = v.x - posX;
+		int b = v.y - posY;
+		return Math.sqrt(a*a + b*b);
 	}
 
 	private HashMap<Integer, Vertex> readVertices(JSONObject json) throws JSONException {
@@ -59,10 +65,7 @@ public class Graph {
 			int y = coords.getInt("y") - 52;
 			Vertex newVertex = new Vertex(x, y);
 			vertices.put(Integer.decode(id), newVertex);
-			Log.d("CaveNav", String.format("vertex %s: (%d,%d)", id, x, y));
 		}
-		Log.d("CaveNav", String.format("# vertices: %d", vertices.size()));
-		Log.d("CaveNav", String.format("vertex keys: %s", vertices.keySet().toString()));
 		return vertices;
 	}
 	
@@ -86,7 +89,7 @@ public class Graph {
 				edges.put(id, newEdge);
 			} else {
 				// there seem to be non-existing vertex id referenced in the json
-		    	Log.d("CaveNav", String.format("%s. vertex ids: (%d, %d)", edgeId, startVertexId, endVertexId));
+		    	Log.e("CaveNav", String.format("%s. vertex ids: (%d, %d)", edgeId, startVertexId, endVertexId));
 			}
 		}
 		return edges;

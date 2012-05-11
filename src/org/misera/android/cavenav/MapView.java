@@ -7,16 +7,13 @@ import android.os.*;
 import android.util.*;
 import android.view.*;
 
-import java.util.*;
-
 import org.misera.android.cavenav.graph.Edge;
 import org.misera.android.cavenav.graph.Graph;
 import org.misera.android.cavenav.graph.Vertex;
 
 public class MapView extends View {
 	
-
-	private Bitmap pic;
+	private Map map;
     private Rect screen = new Rect();
     private ScaleGestureDetector mScaleDetector;
     private float mScaleFactor = 1.f;
@@ -36,11 +33,18 @@ public class MapView extends View {
 	private boolean clickStepping = false;
 	private boolean showPaths = false;
 	private Graph graph;
+	private Matrix mapToScreenMatrix;
+	private Matrix screenToMapMatrix;
+	private int centerX;
+	private int centerY;
 
 	public MapView(Context context, Bitmap pic, Graph graph) {
 		super(context);
-		this.pic = pic;
+
+		this.map = new Map(pic);
 		this.graph = graph;
+		this.mapToScreenMatrix = new Matrix();
+		this.screenToMapMatrix = new Matrix();
 		
 		screen.bottom = this.getHeight();
 		screen.right = this.getWidth();
@@ -56,9 +60,6 @@ public class MapView extends View {
 	    
 	    WindowManager mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 	    mDisplay = mWindowManager.getDefaultDisplay();
-	    
-	    // 0deg = 0; 90deg CW = 1; 180deg = 2; 90deg CCW = 3 
-	    Log.d("ORIENTATION_TEST", "getOrientation(): " + mDisplay.getOrientation());
 	}  
 	
 
@@ -80,23 +81,18 @@ public class MapView extends View {
 	}
 	
     public void clearMarkers() {
-		markers.clear();
+		this.map.clearMarkers();
 		invalidate();
     }
     
-	
-	@Override
-    public void onDraw(Canvas canvas) {
-		super.onDraw(canvas);
-	    canvas.save();
-	    
-	    Matrix m = new Matrix();
+    private void updateMapToScreenMatrix() {
+    	mapToScreenMatrix.reset();
 	    
 		screen.bottom = this.getHeight();
 		screen.right = this.getWidth();
 
-    	int centerX = screen.right/2;
-    	int centerY = screen.bottom/2;
+    	centerX = screen.right/2;
+    	centerY = screen.bottom/2;
 
 		float x = mPosX;
 		float y = mPosY;
@@ -105,47 +101,51 @@ public class MapView extends View {
 			Convert the point that is C in the viewport coordinate system
 			to map coordinate system and move it to (0,0)
 		*/
-		m.setTranslate(-(centerX + x), -(centerY + y));
+		mapToScreenMatrix.setTranslate(-(centerX + x), -(centerY + y));
 		
 		/* 
 			Now rotate the map around point (0,0) which 
 			now corresponds to the viewport center
 		*/
-		m.postRotate(angle, 0,0);		
+		mapToScreenMatrix.postRotate(angle, 0,0);		
 		
 		/* 
 			Move map back so that only the (x,y) offset remains
 		*/
-		m.postTranslate((centerX), (centerY));
+		mapToScreenMatrix.postTranslate((centerX), (centerY));
 
 		/*
 		 	Scale around the C
 		 */
-		m.postScale(mScaleFactor, mScaleFactor, centerX, centerY);
+		mapToScreenMatrix.postScale(mScaleFactor, mScaleFactor, centerX, centerY);
+    }
+    
+	
+	@Override
+    public void onDraw(Canvas canvas) {
+		super.onDraw(canvas);
+	    canvas.save();
+	    
+	    updateMapToScreenMatrix();
+        
+        map.draw(canvas, mapToScreenMatrix, mScaleFactor);
 		
-        canvas.drawBitmap(pic, m, null);
-		
+        // bullseye at center
 	    Paint paint = new Paint();
 	    paint.setColor(Color.RED);
 	    canvas.drawCircle(centerX, centerY, 1, paint);
 	    paint.setStyle(Paint.Style.STROKE);
 	    canvas.drawCircle(centerX, centerY, 3, paint);
 	    canvas.drawCircle(centerX, centerY, 5, paint);
+	    
 	    // debug overlay
-	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f) ", angle, mScaleFactor, mPosX, mPosY);
+	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f) (%.0f,%.0f)", angle, mScaleFactor, mPosX, mPosY, mLastTouchX, mLastTouchY);
 	    if(scaling){
 			debug += "[SCALING] ";
 		}
-	    debug += markers.size();
 		canvas.drawText(debug, 10, 10, paint);
-		// markers
-		paint.setColor(Color.YELLOW);
-		paint.setStyle(Paint.Style.FILL_AND_STROKE);
-		for (Point p : markers) {
-			float[] coords = {p.x, p.y};
-			m.mapPoints(coords);
-			canvas.drawCircle(coords[0], coords[1], mScaleFactor, paint);
-		}
+		
+		// draw graph
 		if (showPaths) {
 			// vertices
 			paint.setColor(Color.GREEN);
@@ -153,7 +153,7 @@ public class MapView extends View {
 			for (Integer key : graph.vertices.keySet()) {
 				Vertex v = graph.vertices.get(key);
 				float[] coords = {v.x, v.y};
-				m.mapPoints(coords);
+				mapToScreenMatrix.mapPoints(coords);
 				canvas.drawCircle(coords[0], coords[1], mScaleFactor, paint);
 			}
 			// edges
@@ -161,10 +161,10 @@ public class MapView extends View {
 				Edge e = graph.edges.get(key);
 				Vertex startVertex = e.startVertex;
 				float[] start = {startVertex.x, startVertex.y};
-				m.mapPoints(start);
+				mapToScreenMatrix.mapPoints(start);
 				Vertex endVertex = e.endVertex;
 				float[] end = {endVertex.x, endVertex.y};
-				m.mapPoints(end);
+				mapToScreenMatrix.mapPoints(end);
 				canvas.drawLine(start[0], start[1], end[0], end[1], paint);
 			}
 		}
@@ -182,7 +182,7 @@ public class MapView extends View {
 	    canvas.restore();
     }
 
-	private float[] mapToScreenCoords(float angle, float xMap,float yMap){
+	private float[] rotateMapToScreenCoords(float angle, float xMap,float yMap){
 		
 		float x = xMap;
 		float y = yMap;
@@ -206,27 +206,17 @@ public class MapView extends View {
 	}
 	
 	
-	private float[] screenToMapCoords(float angle, float xScreen,float yScreen){
-
-		float x = xScreen;
-		float y = yScreen;
-
-		// Convert x,y to polar coords
-
-		double r = Math.sqrt(x*x + y*y);
-		double theta = Math.atan2(y,x);
-
-		// Rotate by angle
-		double rotation = angle * Math.PI / 180;
-		theta += rotation;
-
-		// Convert back to cartesian coords
-
-		x = (float) (r * Math.cos(theta));
-		y = (float) (r * Math.sin(theta));
-
-		float[] returnArray = {x,y};
-		return returnArray;
+	private float[] screenToMapCoords(float xScreen, float yScreen) {
+		mapToScreenMatrix.invert(screenToMapMatrix);
+		float[] out = {xScreen, yScreen};
+		screenToMapMatrix.mapPoints(out);
+		return out;
+	}
+	
+	private float[] mapToScreenCoords(float xMap, float yMap) {
+		float[] out = {xMap, yMap};
+		mapToScreenMatrix.mapPoints(out);
+		return out;
 	}
 		
 	public boolean onTouchEvent(MotionEvent  ev) {
@@ -256,13 +246,11 @@ public class MapView extends View {
 					final float x = ev.getX();
 					final float y = ev.getY();
 					
-					
-
 					// Calculate the distance moved
 					final float dx = (x - mLastTouchX);
 					final float dy = (y - mLastTouchY);
 
-					float[] mapCoords = mapToScreenCoords(angle, dx, dy);
+					float[] mapCoords = rotateMapToScreenCoords(angle, dx, dy);
 					
 					// Move the object
 					mPosX -= mapCoords[0] / mScaleFactor;
@@ -272,8 +260,6 @@ public class MapView extends View {
 					mLastTouchX = x;
 					mLastTouchY = y;
 					
-
-
 					// Invalidate to request a redraw
 					invalidate();	
 				}
@@ -317,16 +303,14 @@ public class MapView extends View {
         }
     };
     
-    private ArrayList<Point> markers = new ArrayList<Point>();
     
     private OnLongClickListener longClickListener = new OnLongClickListener() {
         public boolean onLongClick(View v) {
-			float[] coords = screenToMapCoords(angle, mLastTouchX, mLastTouchY);
+			float[] coords = screenToMapCoords(mLastTouchX, mLastTouchY);
         	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
-    		markers.add(new Point((int)coords[0], (int)coords[1]));
+    		//map.addMarker((int)coords[0], (int)coords[1]);
         	if (vertex != null) {
-        		//markers.add(new Point(vertex.x, vertex.y));
-        		Log.d("CaveNav", vertex.toString());
+        		map.addMarker(vertex.x, vertex.y);
         	}
 			return false;
         }
@@ -341,14 +325,11 @@ public class MapView extends View {
 				float dx = 0;
 				float dy = -(stepLength / pixelLength);
 				
-				float[] transformed = mapToScreenCoords(angle, dx,dy);
+				float[] transformed = rotateMapToScreenCoords(angle, dx,dy);
 				mPosX += transformed[0];
 				mPosY += transformed[1];
 				
-				float centerX = screen.right/2;
-				float centerY = screen.bottom/2;
-				
-				markers.add(new Point((int) (mPosX + centerX), (int) (mPosY + centerY)));
+				map.addMarker((int) (mPosX + centerX), (int) (mPosY + centerY));
 				//mPosX -= dx;
 				Log.i("clickAdvance", "PosX = " + mPosX);
 				invalidate();
