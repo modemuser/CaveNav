@@ -24,6 +24,16 @@ public class Graph {
 		}
 	}
 	
+	/*
+	 * clearing refferrences between vertices, 
+	 * needed for reconstructing the path after A* 
+	 */
+	public void clearReferrences() {
+		for (Vertex v : vertices.values()) {
+			v.prevOnRoute = null;
+		}
+	} 
+	
 	public Edge findEdge(Vertex v1, Vertex v2) {
 		for (Integer key : edges.keySet()) {
 			Edge e = edges.get(key);

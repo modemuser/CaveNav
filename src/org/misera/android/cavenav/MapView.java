@@ -94,6 +94,7 @@ public class MapView extends View {
 
 	public void route() {
 		if (map.markers.size() > 1) {
+			graph.clearReferrences();
 			AStar aStar = new AStar(graph);
 			Point p = map.markers.get(0);
 			Vertex start = graph.nearestVertex(p.x, p.y);
@@ -103,6 +104,7 @@ public class MapView extends View {
 			for (Edge e : route) {
 				routeLength  += e.length;
 			}
+			invalidate();
 		}
 	}
     
