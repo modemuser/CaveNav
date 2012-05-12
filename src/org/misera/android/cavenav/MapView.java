@@ -94,13 +94,17 @@ public class MapView extends View {
 
 	public void route() {
 		if (map.markers.size() > 1) {
-			graph.clearReferrences();
-			AStar aStar = new AStar(graph);
-			Point p = map.markers.get(0);
-			Vertex start = graph.nearestVertex(p.x, p.y);
-			p = map.markers.get(1);
-			Vertex goal = graph.nearestVertex(p.x, p.y);
-			route = aStar.getRoute(start, goal);
+			this.route.clear();
+			routeLength = 0;
+			for (int i=0; i<map.markers.size()-1; i++) {
+				graph.clearReferrences();
+				AStar aStar = new AStar(graph);
+				Point p = map.markers.get(i);
+				Vertex start = graph.nearestVertex(p.x, p.y);
+				p = map.markers.get(i+1);
+				Vertex goal = graph.nearestVertex(p.x, p.y);
+				route.addAll(aStar.getRoute(start, goal));
+			}
 			for (Edge e : route) {
 				routeLength  += e.length;
 			}
@@ -342,7 +346,7 @@ public class MapView extends View {
     private OnLongClickListener longClickListener = new OnLongClickListener() {
         public boolean onLongClick(View v) {
         	if (map.markers.size() > 1) {
-        		return true;
+        		//return true;
         	}
 			float[] coords = screenToMapCoords(mLastTouchX, mLastTouchY);
         	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
