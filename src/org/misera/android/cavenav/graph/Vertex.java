@@ -12,7 +12,7 @@ public class Vertex {
 	
 	// to make life easier, here are values needed for A*
 	public double f;
-	public double g;
+	public double g = Double.MAX_VALUE;
 	public double h;
 	public Vertex prevOnRoute;
 	

@@ -25,11 +25,16 @@ public class Graph {
 	}
 	
 	/*
-	 * clearing refferrences between vertices, 
+	 * clearing referrences between vertices, 
 	 * needed for reconstructing the path after A* 
+	 * 
+	 * also resetting f g h 
 	 */
 	public void clearReferrences() {
 		for (Vertex v : vertices.values()) {
+			v.f = Double.MAX_VALUE;
+			v.g = Double.MAX_VALUE;
+			v.h = Double.MAX_VALUE;
 			v.prevOnRoute = null;
 		}
 	} 
