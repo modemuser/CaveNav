@@ -15,6 +15,7 @@ public class AStar {
 	}
 
 	public ArrayList<Edge> getRoute(Vertex start, Vertex goal) {
+		Log.d("CaveNav", "Calculating route...");
 		ArrayList<Vertex> closedSet = new ArrayList<Vertex>();
 		ArrayList<Vertex> openSet = new ArrayList<Vertex>();
 		start.g = 0;
@@ -25,6 +26,7 @@ public class AStar {
 			Collections.sort(openSet, new VertexComparator());
 			Vertex current = openSet.get(0);
 			if (current == goal) {
+				Log.d("CaveNav", "A route was found!");
 				return reconstructPath(start, goal);
 			}
 			openSet.remove(current);
@@ -61,6 +63,7 @@ public class AStar {
 	}
 	
 	private ArrayList<Edge> reconstructPath(Vertex start, Vertex goal) {
+		Log.d("CaveNav", "Reconstructing path...");
 		ArrayList<Edge> out = new ArrayList<Edge>();
 		Vertex first = goal;
 		Vertex prev = goal.prevOnRoute;
@@ -69,7 +72,7 @@ public class AStar {
 			first = prev;
 			prev = prev.prevOnRoute;
 		}
-		//out.add(graph.findEdge(first, prev));
+		Log.d("CaveNav", "Path reconstructed.");
 		return out;
 	}
 
