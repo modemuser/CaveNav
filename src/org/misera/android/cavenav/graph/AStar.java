@@ -32,9 +32,6 @@ public class AStar {
 			openSet.remove(current);
 			closedSet.add(current);
 			for (Vertex neighbor : current.getNeighbors()) {
-				neighbor.h = getDistance(goal, neighbor);
-				neighbor.g = current.g + getDistance(current, neighbor);
-				neighbor.f = neighbor.g + neighbor.h;
 				if (closedSet.contains(neighbor)) {
 					continue;
 				}
