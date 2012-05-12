@@ -366,7 +366,7 @@ public class MapView extends View {
 				mPosX += transformed[0];
 				mPosY += transformed[1];
 				
-				map.addMarker((int) (mPosX + centerX), (int) (mPosY + centerY));
+				//map.addMarker((int) (mPosX + centerX), (int) (mPosY + centerY));
 				//mPosX -= dx;
 				Log.i("clickAdvance", "PosX = " + mPosX);
 				invalidate();

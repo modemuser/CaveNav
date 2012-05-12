@@ -95,6 +95,7 @@ public class MapActivity extends Activity {
         switch (item.getItemId()) {
         	case R.id.route:
         		mapView.route();
+        		mapView.invalidate();
         		return true;
             case R.id.menu_clear:
                 mapView.clearMarkers();
