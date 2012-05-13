@@ -65,6 +65,7 @@ public class MapView extends View {
 	    
 	    WindowManager mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 	    mDisplay = mWindowManager.getDefaultDisplay();
+	    
 	}  
 	
 
