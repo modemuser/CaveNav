@@ -34,6 +34,7 @@ public class MapView extends View {
 	private RayCastRendererView rayCastRenderer;	
 	private boolean hasRayCaster = false;
 	
+	private boolean waypointMode = false;
 	private boolean clickStepping = false;
 	private boolean showPaths = false;
 	private Graph graph;
@@ -87,24 +88,22 @@ public class MapView extends View {
 		invalidate();
 	}
 	
-    public void clearMarkers() {
-		this.map.clearMarkers();
+    public void clear() {
+		this.map.clearWaypoints();
 		this.route.clear();
 		routeLength = 0;
 		invalidate();
     }
 
 	public void route() {
-		if (map.markers.size() > 1) {
+		if (map.waypoints.size() > 1) {
 			this.route.clear();
 			routeLength = 0;
-			for (int i=0; i<map.markers.size()-1; i++) {
+			for (int i=0; i<map.waypoints.size()-1; i++) {
 				graph.clearReferrences();
 				AStar aStar = new AStar(graph);
-				Point p = map.markers.get(i);
-				Vertex start = graph.nearestVertex(p.x, p.y);
-				p = map.markers.get(i+1);
-				Vertex goal = graph.nearestVertex(p.x, p.y);
+				Vertex start = map.waypoints.get(i);
+				Vertex goal = map.waypoints.get(i+1);
 				route.addAll(aStar.getRoute(start, goal));
 			}
 			Edge prevEdge = null;
@@ -383,15 +382,13 @@ public class MapView extends View {
     
     private OnLongClickListener longClickListener = new OnLongClickListener() {
         public boolean onLongClick(View v) {
-        	if (map.markers.size() > 1) {
-        		//return true;
-        	}
-			float[] coords = screenToMapCoords(mLastTouchX, mLastTouchY);
-        	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
-    		//map.addMarker((int)coords[0], (int)coords[1]);
-        	if (vertex != null) {
-        		map.addMarker(vertex.x, vertex.y);
-        		invalidate();
+        	if (waypointMode) {
+				float[] coords = screenToMapCoords(mLastTouchX, mLastTouchY);
+	        	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
+	        	if (vertex != null) {
+	        		map.addWaypoint(vertex);
+	        		invalidate();
+	        	}
         	}
 			return false;
         }
@@ -418,5 +415,10 @@ public class MapView extends View {
 			//return false;
 		}
 	};
+
+	public void toggleWaypointMode() {
+		this.waypointMode = !waypointMode;
+		
+	}
 
 }

@@ -93,12 +93,15 @@ public class MapActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
+	    	case R.id.waypoint:
+	    		mapView.toggleWaypointMode();
+	    		return true;
         	case R.id.route:
         		mapView.route();
         		mapView.invalidate();
         		return true;
             case R.id.menu_clear:
-                mapView.clearMarkers();
+                mapView.clear();
                 return true;
             case R.id.toggle_paths:
             	item.setChecked(!item.isChecked());

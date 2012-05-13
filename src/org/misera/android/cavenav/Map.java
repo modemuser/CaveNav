@@ -2,6 +2,8 @@ package org.misera.android.cavenav;
 
 import java.util.ArrayList;
 
+import org.misera.android.cavenav.graph.Vertex;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,11 +14,11 @@ import android.graphics.Point;
 public class Map {
 	
 	private Bitmap pic;
-    public ArrayList<Point> markers;
+    public ArrayList<Vertex> waypoints;
 
 	public Map(Bitmap pic) {
 		this.pic = pic;
-		this.markers = new ArrayList<Point>();
+		this.waypoints = new ArrayList<Vertex>();
 	}
 	
 	public Canvas draw(Canvas canvas, Matrix m, float scale) {
@@ -27,7 +29,7 @@ public class Map {
 		Paint paint = new Paint();
 		paint.setColor(Color.YELLOW);
 		paint.setStyle(Paint.Style.FILL_AND_STROKE);
-		for (Point p : markers) {
+		for (Vertex p : waypoints) {
 			float[] coords = {p.x, p.y};
 			m.mapPoints(coords);
 			canvas.drawCircle(coords[0], coords[1], 5*scale, paint);
@@ -35,12 +37,12 @@ public class Map {
 		return canvas;
 	}
 	
-	public void addMarker(int mapPosX, int mapPosY) {
-		this.markers.add(new Point(mapPosX, mapPosY));
+	public void addWaypoint(Vertex v) {
+		this.waypoints.add(v);
 	}
 
-	public void clearMarkers() {
-		this.markers.clear();
+	public void clearWaypoints() {
+		this.waypoints.clear();
 	}
 		
 }
