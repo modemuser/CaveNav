@@ -11,6 +11,7 @@ import android.view.*;
 
 import org.misera.android.cavenav.graph.AStar;
 import org.misera.android.cavenav.graph.Edge;
+import org.misera.android.cavenav.graph.Edge.Direction;
 import org.misera.android.cavenav.graph.Graph;
 import org.misera.android.cavenav.graph.Vertex;
 
@@ -106,7 +107,15 @@ public class MapView extends View {
 				Vertex goal = graph.nearestVertex(p.x, p.y);
 				route.addAll(aStar.getRoute(start, goal));
 			}
+			Edge prevEdge = null;
 			for (Edge e : route) {
+				if(prevEdge != null){
+					double angle = prevEdge.angle(e);
+					Log.i("MapView", "Angle: " + angle);
+					
+				}
+				prevEdge = e;
+				
 				routeLength  += e.length;
 			}
 			invalidate();
@@ -198,7 +207,14 @@ public class MapView extends View {
 		}
 		
 		// route
+		Edge prevEdge = null;
+		boolean above = true;
+		int i = 1;
+		
+		
 		for (Edge e : route) {
+
+			
 			paint.setColor(Color.YELLOW);
 			Vertex startVertex = e.startVertex;
 			float[] start = {startVertex.x, startVertex.y};
@@ -207,6 +223,27 @@ public class MapView extends View {
 			float[] end = {endVertex.x, endVertex.y};
 			mapToScreenMatrix.mapPoints(end);
 			canvas.drawLine(start[0], start[1], end[0], end[1], paint);
+			
+			double distance = Math.round(e.length);
+			float[] midLine = { start[0] + (end[0] - start[0]) / 2, start[1] + (end[1] - start[1]) / 2};
+			canvas.drawText(distance + "m", midLine[0] + 10, midLine[1], paint);
+			
+			// For routes with more than 2 markers, results are useless
+			//if(map.markers.size() == 2){
+				if(prevEdge != null){
+					double angle = prevEdge.angle(e);
+					Log.i("MapView", "Angle: " + angle);
+					Direction d = prevEdge.direction(e);
+					
+					if(d != Direction.STRAIGHT){
+						//canvas.drawText("(" + i + ")" + Math.floor(angle) + "°", end[0], above ? end[1] - 10 : end[1] + 10, paint);
+						canvas.drawText("(" + i + ")" + (d == Direction.LEFT ? "Left" : "Right") , end[0], above ? end[1] - 10 : end[1] + 10, paint);
+						above = !above;
+						i += 1;
+					}
+				}
+				prevEdge = e;				
+			//}		
 		}
 		
 		if(hasRayCaster){
@@ -373,7 +410,7 @@ public class MapView extends View {
 				mPosX += transformed[0];
 				mPosY += transformed[1];
 				
-				map.addMarker((int) (mPosX + centerX), (int) (mPosY + centerY));
+				//map.addMarker((int) (mPosX + centerX), (int) (mPosY + centerY));
 				//mPosX -= dx;
 				Log.i("clickAdvance", "PosX = " + mPosX);
 				invalidate();

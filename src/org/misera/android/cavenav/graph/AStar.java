@@ -65,7 +65,13 @@ public class AStar {
 		Vertex first = goal;
 		Vertex prev = goal.prevOnRoute;
 		while (prev != null) {
-			out.add(graph.findEdge(first, prev));
+			Edge e = graph.findEdge(first, prev);
+			
+			// Fix the directions of the planned route so e2.start = e.end
+			e.endVertex = first;
+			e.startVertex = prev;
+			
+			out.add(e);
 			first = prev;
 			prev = prev.prevOnRoute;
 		}
