@@ -34,8 +34,8 @@ public class RayCaster
 	
 	public RayCaster(int[][] map){
 		this.map = map;
-		this.gridSize = 32;
-		int[] defaultWallDimensions = {32,32};
+		this.gridSize = 64;
+		int[] defaultWallDimensions = {64,64};
 		this.setWallDimensions(defaultWallDimensions);
 		this.setFOV(60);
 		
@@ -87,7 +87,7 @@ public class RayCaster
 		int[] playerCenter = getUnitCoordinates(playerPos);
 		//angle = angle + 360;
 		angle = angle > 360 ? angle % 360 : angle;
-		angle = angle < 0 ? 360 + angle : angle;
+		angle = angle < 0 ? 360 -  Math.abs((angle % 360)) : angle;
 		
 		//Log.i("RayCaster", "Angle: " + angle);
 		boolean upward = angle < 180;
