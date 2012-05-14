@@ -34,7 +34,6 @@ public class MapView extends View {
 	private RayCastRendererView rayCastRenderer;	
 	private boolean hasRayCaster = false;
 	
-	private boolean waypointMode = false;
 	private boolean clickStepping = false;
 	private boolean showPaths = false;
 	private Graph graph;
@@ -44,6 +43,11 @@ public class MapView extends View {
 	private int centerY;
 	ArrayList<Edge> route = new ArrayList<Edge>();
 	private double routeLength = 0;
+	
+	public Mode mode = Mode.NORMAL;
+	public enum Mode {
+		NORMAL, WAYPOINT, POI
+	}
 
 	public MapView(Context context, Bitmap pic, Graph graph) {
 		super(context);
@@ -82,7 +86,7 @@ public class MapView extends View {
 	public void toggleClickStepping() {
 		this.clickStepping = !this.clickStepping;
 	}
-	
+		
 	public void togglePaths() {
 		this.showPaths = !this.showPaths ;
 		invalidate();
@@ -382,7 +386,7 @@ public class MapView extends View {
     
     private OnLongClickListener longClickListener = new OnLongClickListener() {
         public boolean onLongClick(View v) {
-        	if (waypointMode) {
+        	if (mode == Mode.WAYPOINT) {
 				float[] coords = screenToMapCoords(mLastTouchX, mLastTouchY);
 	        	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
 	        	if (vertex != null) {
@@ -416,9 +420,5 @@ public class MapView extends View {
 		}
 	};
 
-	public void toggleWaypointMode() {
-		this.waypointMode = !waypointMode;
-		
-	}
 
 }

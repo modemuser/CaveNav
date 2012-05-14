@@ -10,5 +10,7 @@
     <string name="geogif">Geo</string>
     <string name="switch_views">Switch views</string>
     <string name="route">Route</string>
-    <string name="waypoint">Waypoints</string>
+    <string name="choose_mode">Mode</string>
+    <string name="mode_normal">Normal</string>
+    <string name="mode_waypoint">Waypoints</string>
 </resources>

@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-	<item android:id="@+id/waypoint"
-          android:title="@string/waypoint"
-          android:showAsAction="ifRoom" />
+    <item android:id="@+id/choose_mode"
+          android:title="@string/choose_mode" 
+          android:showAsAction="ifRoom"  >
+        <menu>
+        	<group android:checkableBehavior="single">
+				<item android:id="@+id/mode_normal"
+			          android:title="@string/mode_normal" 
+			          android:checked="true" />
+				<item android:id="@+id/mode_waypoint"
+			          android:title="@string/mode_waypoint" />
+		    </group>
+		</menu>
+	</item>
 	<item android:id="@+id/route"
           android:title="@string/route"
           android:showAsAction="ifRoom" />
