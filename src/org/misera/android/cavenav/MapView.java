@@ -167,6 +167,8 @@ public class MapView extends View {
 	    canvas.save();
 	    
 	    updateMapToScreenMatrix();
+	    //centerOnNearestEdge();
+	    centerOnNearestVertex();
         
         map.draw(canvas, mapToScreenMatrix, mScaleFactor);
 		
@@ -266,7 +268,7 @@ public class MapView extends View {
 	    canvas.restore();
     }
 
-	private float[] rotateMapToScreenCoords(float angle, float xMap,float yMap){
+	private float[] rotateMovementScreenToMap(float angle, float xMap,float yMap){
 		
 		float x = xMap;
 		float y = yMap;
@@ -334,7 +336,7 @@ public class MapView extends View {
 					final float dx = (x - mLastTouchX);
 					final float dy = (y - mLastTouchY);
 
-					float[] mapCoords = rotateMapToScreenCoords(angle, dx, dy);
+					float[] mapCoords = rotateMovementScreenToMap(angle, dx, dy);
 					
 					// Move the object
 					mPosX -= mapCoords[0] / mScaleFactor;
@@ -411,7 +413,7 @@ public class MapView extends View {
 				float dx = 0;
 				float dy = -(stepLength / map.pixelLength);
 				
-				float[] transformed = rotateMapToScreenCoords(angle, dx,dy);
+				float[] transformed = rotateMovementScreenToMap(angle, dx,dy);
 				mPosX += transformed[0];
 				mPosY += transformed[1];
 				
@@ -423,6 +425,51 @@ public class MapView extends View {
 			//return false;
 		}
 	};
+	
+	private void centerOnNearestEdge() {
+		// this is the easiest but also the most inefficient way to center on an edge:
+		// find closest edge E relative to center of screen C
+		float[] c = screenToMapCoords(centerX, centerY);
+		// find shortest distance from C to point P on edge E
+		int[] p = null;
+		double shortestDistance = Double.MAX_VALUE;
+		for (Edge edge : graph.edges.values()) {
+			int[] closest = Graph.closestPointOnEdge((int)c[0], (int)c[1], edge);
+			double dist = Graph.distance((int)c[0], (int)c[1], closest[0], closest[1]);
+			if (dist < shortestDistance) {
+				shortestDistance = dist;
+				p = closest;
+				route.clear();
+				route.add(edge);
+			}
+		}
+		if (p == null) {
+			return;
+		}
+		centerOnMapPosition(p[0], p[1]);
+		
+	}
+	
+	private void centerOnNearestVertex() {
+		float[] c = screenToMapCoords(centerX, centerY);
+		Vertex v = graph.nearestVertex((int)c[0], (int)c[1]);
+		if (v == null) {
+			return;
+		}
+		centerOnMapPosition(v.x, v.y);
+	}
+	
+	private void centerOnMapPosition(int posX, int posY) {
+		float[] p = mapToScreenCoords(posX, posY);
+		// calculate dx, dy between C and P
+		float dx = p[0] - centerX;
+		float dy = p[1] - centerY;
+		// rotate map to screen 
+		float[] transformed = rotateMovementScreenToMap(angle, dx, dy);
+		// update mPosX, mPosY with dx, dy
+		mPosX += transformed[0] / mScaleFactor;
+		mPosY += transformed[1] / mScaleFactor;
+	}
 
 
 }

@@ -57,9 +57,9 @@ public class Graph {
 			Vertex v = vertices.get(key);
 			if (out == null) {
 				out = v;
-				distOut = distance(posX, posY, out);
+				distOut = distance(posX, posY, out.x, out.y);
 			} else {
-				double distV = distance(posX, posY, v);
+				double distV = distance(posX, posY, v.x, v.y);
 				if (distV < distOut) {
 					out = v;
 					distOut = distV;
@@ -73,15 +73,14 @@ public class Graph {
 		}
 	}
 	
+	
 	public static double getDistance(Vertex v1, Vertex v2) {
-		int a = v1.x - v2.x;
-		int b = v1.y - v2.y;
-		return Math.sqrt(a*a + b*b);
+		return distance(v1.x, v1.y, v2.x, v2.y);
 	}
 
-	private double distance(int posX, int posY, Vertex v) {
-		int a = v.x - posX;
-		int b = v.y - posY;
+	public static double distance(int x1, int y1, int x2, int y2) {
+		int a = x1 - x2;
+		int b = y1 - y2;
 		return Math.sqrt(a*a + b*b);
 	}
 
@@ -125,6 +124,19 @@ public class Graph {
 			}
 		}
 		return edges;
+	}
+
+	public static int[] closestPointOnEdge(int x3, int y3, Edge edge) {
+		// http://paulbourke.net/geometry/pointline/
+		int x1 = edge.startVertex.x;
+		int y1 = edge.startVertex.y;
+		int x2 = edge.endVertex.x;
+		int y2 = edge.endVertex.y;
+		double u = ((x3-x1)*(x2-x1) + (y3-y1)*(y2-y1)) / distance(x1, y1, x2, y2);
+		double outX = x1 + u * (x2-x1);
+		double outY = y1 + u * (y2-y1);
+		int[] out = {(int)outX, (int)outY};
+		return out;
 	}
 
 }
