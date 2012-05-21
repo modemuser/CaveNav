@@ -32,7 +32,7 @@ public class Edge {
 			this.startVertex = endVertex;
 			this.endVertex = startVertex;
 		}
-
+		// length is in pixels, not meters!
 		this.length = Graph.getDistance(startVertex, endVertex);
 	}
 	

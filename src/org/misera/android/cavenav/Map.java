@@ -15,6 +15,7 @@ public class Map {
 	
 	private Bitmap pic;
     public ArrayList<Vertex> waypoints;
+	public float pixelLength = 0.5f;
 
 	public Map(Bitmap pic) {
 		this.pic = pic;

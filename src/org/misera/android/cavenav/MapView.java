@@ -214,11 +214,12 @@ public class MapView extends View {
 		boolean above = true;
 		int i = 1;
 		
-		
+
+		paint.setColor(Color.YELLOW);
+		paint.setTextSize(10+mScaleFactor);
 		for (Edge e : route) {
 
 			
-			paint.setColor(Color.YELLOW);
 			Vertex startVertex = e.startVertex;
 			float[] start = {startVertex.x, startVertex.y};
 			mapToScreenMatrix.mapPoints(start);
@@ -227,26 +228,29 @@ public class MapView extends View {
 			mapToScreenMatrix.mapPoints(end);
 			canvas.drawLine(start[0], start[1], end[0], end[1], paint);
 			
-			double distance = Math.round(e.length);
-			float[] midLine = { start[0] + (end[0] - start[0]) / 2, start[1] + (end[1] - start[1]) / 2};
-			canvas.drawText(distance + "m", midLine[0] + 10, midLine[1], paint);
-			
-			// For routes with more than 2 markers, results are useless
-			//if(map.markers.size() == 2){
-				if(prevEdge != null){
-					double angle = prevEdge.angle(e);
-					Log.i("MapView", "Angle: " + angle);
-					Direction d = prevEdge.direction(e);
-					
-					if(d != Direction.STRAIGHT){
-						//canvas.drawText("(" + i + ")" + Math.floor(angle) + "°", end[0], above ? end[1] - 10 : end[1] + 10, paint);
-						canvas.drawText("(" + i + ")" + (d == Direction.LEFT ? "Left" : "Right") , end[0], above ? end[1] - 10 : end[1] + 10, paint);
-						above = !above;
-						i += 1;
+			// only show directions when resolution shown > 1 meter per pixel
+			if (mScaleFactor > 1 / map.pixelLength) {
+				double distance = Math.round(e.length) * map.pixelLength;
+				float[] midLine = { start[0] + (end[0] - start[0]) / 2, start[1] + (end[1] - start[1]) / 2};
+				canvas.drawText(distance + "m", midLine[0] + 10, midLine[1], paint);
+				
+				// For routes with more than 2 markers, results are useless
+				//if(map.markers.size() == 2){
+					if(prevEdge != null){
+						double angle = prevEdge.angle(e);
+						Log.i("MapView", "Angle: " + angle);
+						Direction d = prevEdge.direction(e);
+						
+						if(d != Direction.STRAIGHT){
+							//canvas.drawText("(" + i + ")" + Math.floor(angle) + "°", end[0], above ? end[1] - 10 : end[1] + 10, paint);
+							canvas.drawText("(" + i + ")" + (d == Direction.LEFT ? "Left" : "Right") , end[0], above ? end[1] - 10 : end[1] + 10, paint);
+							above = !above;
+							i += 1;
+						}
 					}
-				}
-				prevEdge = e;				
-			//}		
+					prevEdge = e;				
+				//}
+			}
 		}
 		
 		if(hasRayCaster){
@@ -403,10 +407,9 @@ public class MapView extends View {
 		public void onClick(View v){
 			if (clickStepping) {
 				float stepLength = 0.75f;
-				float pixelLength = 0.5f;
 				
 				float dx = 0;
-				float dy = -(stepLength / pixelLength);
+				float dy = -(stepLength / map.pixelLength);
 				
 				float[] transformed = rotateMapToScreenCoords(angle, dx,dy);
 				mPosX += transformed[0];
