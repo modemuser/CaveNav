@@ -12,5 +12,5 @@
     <string name="route">Route</string>
     <string name="choose_mode">Mode</string>
     <string name="mode_normal">Normal</string>
-    <string name="mode_waypoint">Waypoints</string>
+    <string name="mode_waypoint">Routing</string>
 </resources>

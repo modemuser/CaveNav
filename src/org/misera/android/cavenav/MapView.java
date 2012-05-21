@@ -393,6 +393,7 @@ public class MapView extends View {
 	        		map.addWaypoint(vertex);
 	        		invalidate();
 	        	}
+	        	route();
         	}
 			return false;
         }

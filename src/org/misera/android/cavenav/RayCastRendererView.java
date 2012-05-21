@@ -35,7 +35,7 @@ public class RayCastRendererView extends View
 		int resX = this.getWidth();
 		int resY = this.getHeight();
 		double maxDistance = 40;
-		int maxColor = 200;
+		int maxColor = 255;
 		
 		int middle = resY / 2;
 		

@@ -101,10 +101,6 @@ public class MapActivity extends Activity {
 	        	item.setChecked(true);
 	        	mapView.mode = mapView.mode.WAYPOINT;
 	    		return true;
-        	case R.id.route:
-        		mapView.route();
-        		mapView.invalidate();
-        		return true;
             case R.id.menu_clear:
                 mapView.clear();
                 return true;
