@@ -166,9 +166,9 @@ public class MapView extends View {
 		super.onDraw(canvas);
 	    canvas.save();
 	    
+	    centerOnNearestEdge();
 	    updateMapToScreenMatrix();
-	    //centerOnNearestEdge();
-	    centerOnNearestVertex();
+
         
         map.draw(canvas, mapToScreenMatrix, mScaleFactor);
 		
@@ -431,16 +431,14 @@ public class MapView extends View {
 		// find closest edge E relative to center of screen C
 		float[] c = screenToMapCoords(centerX, centerY);
 		// find shortest distance from C to point P on edge E
-		int[] p = null;
+		float[] p = null;
 		double shortestDistance = Double.MAX_VALUE;
 		for (Edge edge : graph.edges.values()) {
-			int[] closest = Graph.closestPointOnEdge((int)c[0], (int)c[1], edge);
-			double dist = Graph.distance((int)c[0], (int)c[1], closest[0], closest[1]);
+			float[] closest = Graph.closestPointOnEdge(c[0], c[1], edge);
+			double dist = Graph.distance(c[0], c[1], closest[0], closest[1]);
 			if (dist < shortestDistance) {
 				shortestDistance = dist;
 				p = closest;
-				route.clear();
-				route.add(edge);
 			}
 		}
 		if (p == null) {
@@ -450,18 +448,10 @@ public class MapView extends View {
 		
 	}
 	
-	private void centerOnNearestVertex() {
-		float[] c = screenToMapCoords(centerX, centerY);
-		Vertex v = graph.nearestVertex((int)c[0], (int)c[1]);
-		if (v == null) {
-			return;
-		}
-		centerOnMapPosition(v.x, v.y);
-	}
 	
-	private void centerOnMapPosition(int posX, int posY) {
+	private void centerOnMapPosition(float posX, float posY) {
 		float[] p = mapToScreenCoords(posX, posY);
-		// calculate dx, dy between C and P
+		// calculate dx, dy between center and point p
 		float dx = p[0] - centerX;
 		float dy = p[1] - centerY;
 		// rotate map to screen 

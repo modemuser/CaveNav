@@ -78,9 +78,9 @@ public class Graph {
 		return distance(v1.x, v1.y, v2.x, v2.y);
 	}
 
-	public static double distance(int x1, int y1, int x2, int y2) {
-		int a = x1 - x2;
-		int b = y1 - y2;
+	public static double distance(float x1, float y1, float x2, float y2) {
+		float a = x1 - x2;
+		float b = y1 - y2;
 		return Math.sqrt(a*a + b*b);
 	}
 
@@ -126,16 +126,24 @@ public class Graph {
 		return edges;
 	}
 
-	public static int[] closestPointOnEdge(int x3, int y3, Edge edge) {
-		// http://paulbourke.net/geometry/pointline/
+	public static float[] closestPointOnEdge(float x3, float y3, Edge edge) {
 		int x1 = edge.startVertex.x;
 		int y1 = edge.startVertex.y;
 		int x2 = edge.endVertex.x;
 		int y2 = edge.endVertex.y;
-		double u = ((x3-x1)*(x2-x1) + (y3-y1)*(y2-y1)) / distance(x1, y1, x2, y2);
-		double outX = x1 + u * (x2-x1);
-		double outY = y1 + u * (y2-y1);
-		int[] out = {(int)outX, (int)outY};
+		
+		double[] AP = {x3-x1, y3-y1};
+		double[] AB = {x2-x1, y2-y1};
+		double AB2 = AB[0] * AB[0] + AB[1] * AB[1];
+		double AP_dot_AB = AP[0] * AB[0] + AP[1] * AB[1];
+		double t = AP_dot_AB / AB2;
+		// clamp to segment
+		if (t < 0) { t = 0; }
+		else if (t > 1) { t = 1; }
+		
+		double outX = x1 + AB[0] * t;
+		double outY = y1 + AB[1] * t;
+		float[] out = {(float) outX, (float) outY};
 		return out;
 	}
 
