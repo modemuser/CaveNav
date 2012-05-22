@@ -31,12 +31,10 @@
     <item android:id="@+id/choose_map"
           android:title="@string/choose_map" >
         <menu>
-            <item android:id="@+id/caestert_negative"
-                  android:title="@string/caestert_negative" />
             <item android:id="@+id/caestert"
                   android:title="@string/caestert" />
-            <item android:id="@+id/geogif"
-                  android:title="@string/geogif" />
+            <item android:id="@+id/ternaaien"
+                  android:title="@string/ternaaien" />
         </menu>
     </item>
     

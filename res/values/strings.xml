@@ -5,9 +5,8 @@
     <string name="click_stepping">Click stepping</string>
     <string name="follow_edges">Follow edges</string>
     <string name="choose_map">Choose map...</string>
-    <string name="caestert_negative">Caestert negative</string>
     <string name="caestert">Caestert</string>
-    <string name="geogif">Geo</string>
+    <string name="ternaaien">Ternaaien</string>
     <string name="switch_views">Switch views</string>
     <string name="route">Route</string>
     <string name="choose_mode">Mode</string>

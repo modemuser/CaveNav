@@ -43,23 +43,22 @@ public class MapActivity extends Activity {
         		WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
         	);
-        load("caestert_negative.png");
+        load("caestert");
 	} 
        
-	private void load(String filename) {	
-		Bitmap pic = getBitmapFromAsset(filename);
-		String json = getStringFromAsset("caestert.json");
-		
+	private void load(String folder) {
+		folder += "/";
+		Bitmap map = getBitmapFromAsset(folder + "map.png");
+		String graph = getStringFromAsset(folder + "graph.json");
 		double pixelLength = 0.5;
-		MapBundle mb = new MapBundle(pic, pixelLength);
-		mb.initGraph(json);
+		MapBundle mb = new MapBundle(map, pixelLength);
+		mb.initGraph(graph);
 		
 		mapView = new MapView(this, mb);
 		mapView.setMode(Mode.NORMAL);
 		
-		Bitmap map = getBitmapFromAsset("caestert_canny.png");
-
-		rayCastView = new RayCastRendererView(this, map);
+		Bitmap canny = getBitmapFromAsset(folder + "canny.png");
+		rayCastView = new RayCastRendererView(this, canny);
 
 		setContentView(R.layout.main);
 		LinearLayout main = (LinearLayout) findViewById(R.id.contentMain);
@@ -178,14 +177,11 @@ public class MapActivity extends Activity {
             	item.setChecked(!item.isChecked());
             	mapView.toggleFollowEdges();
             	return true;
-            case R.id.caestert_negative:
-            	load("caestert_negative.png");
-            	return true;
             case R.id.caestert:
-            	load("caestert.png");
+            	load("caestert");
             	return true;
-            case R.id.geogif:
-            	load("geo.gif");
+            case R.id.ternaaien:
+            	load("ternaaien");
             	return true;
             case R.id.switch_views:
             	toggleSwitchView();
@@ -205,13 +201,13 @@ public class MapActivity extends Activity {
 	    InputStream istr = null;
 		try {
 			istr = assetManager.open(strName);
+		    Bitmap bitmap = BitmapFactory.decodeStream(istr);
+		    return bitmap;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	    Bitmap bitmap = BitmapFactory.decodeStream(istr);
-	
-	    return bitmap;
+		return null;
 	}
 	
 	private String getStringFromAsset(String strName) {
