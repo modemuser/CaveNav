@@ -27,8 +27,6 @@ public class MapView extends View {
 	private float mPosX;
 	private float mPosY;
 	private float angle = 0.f;
-	private float heading = 0.f;
-	private float prevAngle = 0.f;
 	private Display mDisplay;
 
 	private RayCastRendererView rayCastRenderer;	
@@ -36,6 +34,7 @@ public class MapView extends View {
 	
 	private boolean clickStepping = false;
 	private boolean showPaths = false;
+	private boolean allowRotation;
 	private Graph graph;
 	private Matrix mapToScreenMatrix;
 	private Matrix screenToMapMatrix;
@@ -44,9 +43,9 @@ public class MapView extends View {
 	ArrayList<Edge> route = new ArrayList<Edge>();
 	private double routeLength = 0;
 	
-	public Mode mode = Mode.NORMAL;
+	private Mode mode = Mode.NORMAL;
 	public enum Mode {
-		NORMAL, WAYPOINT, POI
+		NORMAL, WAYPOINT, GRAPH, POI
 	}
 
 	public MapView(Context context, Bitmap pic, Graph graph) {
@@ -63,7 +62,7 @@ public class MapView extends View {
 	    mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 		SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         Sensor mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-	    mSensorManager.registerListener(mListener, mSensor, SensorManager.SENSOR_DELAY_GAME);
+	    mSensorManager.registerListener(mListener, mSensor, SensorManager.SENSOR_DELAY_UI);
 		
 		this.setOnClickListener(clickListener);
 	    
@@ -97,6 +96,22 @@ public class MapView extends View {
 		this.route.clear();
 		routeLength = 0;
 		invalidate();
+    }
+    
+    public void setMode(Mode mode) {
+    	this.mode = mode;
+    	switch (mode) {
+    		case GRAPH: {
+    			showPaths = true;
+    			allowRotation = false;
+    			break;
+    		}
+    		default: {
+    			showPaths = false;
+    			allowRotation = true;
+    		}
+    	}
+    	invalidate();
     }
 
 	public void route() {
@@ -188,9 +203,9 @@ public class MapView extends View {
 		canvas.drawText(debug, 10, 10, paint);
 		
 		// draw graph
-		if (showPaths) {
+		if (mode == Mode.GRAPH || showPaths) {
 			// vertices
-			paint.setColor(Color.GREEN);
+			paint.setColor(Color.rgb(0, 127, 0));
 			paint.setStyle(Paint.Style.FILL_AND_STROKE);
 			for (Integer key : graph.vertices.keySet()) {
 				Vertex v = graph.vertices.get(key);
@@ -372,16 +387,19 @@ public class MapView extends View {
 	
 	private final SensorEventListener mListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
-        	float _heading = event.values[0];
-        	// make the heading compatible to the transform matrix:
-        	// 1. invert sign of heading to turn the other way
-        	// 2. take into account screen orientation
-        	float angleNew = -_heading - 90*mDisplay.getOrientation();
-        	// to smooth the rotation, only rotate if angle changes significantly
-        	if (Math.abs(angle - angleNew) > 0.3) {
-        		angle = angleNew;
-        		heading = _heading;
-                invalidate();
+        	if (allowRotation) {
+	        	float _heading = event.values[0];
+	        	// make the heading compatible to the transform matrix:
+	        	// 1. invert sign of heading to turn the other way
+	        	// 2. take into account screen orientation
+	        	float angleNew = -_heading - 90*mDisplay.getOrientation();
+	        	// to smooth the rotation, only rotate if angle changes significantly
+	        	if (Math.abs(angle - angleNew) > 0.3) {
+	        		angle = angleNew;
+	                invalidate();
+	        	}
+        	} else {
+        		angle = 0;
         	}
         }
 

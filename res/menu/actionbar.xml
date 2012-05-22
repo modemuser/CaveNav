@@ -11,6 +11,10 @@
 			          android:checked="true" />
 				<item android:id="@+id/mode_waypoint"
 			          android:title="@string/mode_waypoint" />
+			    <item android:id="@+id/mode_graph"
+			          android:title="@string/mode_graph" />
+			    <item android:id="@+id/mode_poi"
+			          android:title="@string/mode_poi" />
 		    </group>
 		</menu>
 	</item>
