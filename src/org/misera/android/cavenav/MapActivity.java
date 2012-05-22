@@ -7,14 +7,18 @@ import org.misera.android.cavenav.MapView.Mode;
 import org.misera.android.cavenav.graph.Graph;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 
@@ -27,6 +31,7 @@ public class MapActivity extends Activity {
     private boolean hasFlashLight;
     private boolean flashLightEnabled = false;
 
+    private OnFlashlightClickListener flashLightListener = new OnFlashlightClickListener(this);
 
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -86,12 +91,56 @@ public class MapActivity extends Activity {
 
 		mapIsMainView = !mapIsMainView;
 	}
+	
+	private class OnFlashlightClickListener implements OnMenuItemClickListener{
+
+		private Camera cam;
+		private Activity activity;
+		
+		public OnFlashlightClickListener(Activity activity){
+			this.activity = activity;
+		}
+		
+    	
+		public boolean onMenuItemClick(MenuItem item) {
+			flashLightEnabled = !flashLightEnabled;
+			if(flashLightEnabled){
+				cam = Camera.open();
+				Parameters p = cam.getParameters();
+				p.setFlashMode(Parameters.FLASH_MODE_TORCH);
+				cam.setParameters(p);
+				cam.startPreview();
+			}
+			else{
+				cam.stopPreview();
+				cam.release();
+			}
+			
+			activity.invalidateOptionsMenu();
+			return false;
+		}
+		
+	}
     
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.actionbar, menu);
+        
+        if(hasFlashLight){
+            MenuItem flashLightItem;
+            if(flashLightEnabled){
+            	flashLightItem = menu.add("Light off");
+            }else{
+            	flashLightItem = menu.add("Light on");
+            }
+            
+            flashLightItem.setOnMenuItemClickListener(flashLightListener);
+            flashLightItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        }
+
+        
         return true;
     }
     
