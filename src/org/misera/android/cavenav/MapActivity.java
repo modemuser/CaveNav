@@ -3,6 +3,7 @@ package org.misera.android.cavenav;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.misera.android.cavenav.MapView.Mode;
 import org.misera.android.cavenav.graph.Graph;
 
 import android.app.Activity;
@@ -46,7 +47,7 @@ public class MapActivity extends Activity {
 		Graph graph = new Graph(json);
 		
 		mapView = new MapView(this, pic, graph);
-		
+		mapView.setMode(Mode.NORMAL);
 		
 		Bitmap map = getBitmapFromAsset("caestert_canny.png");
 
@@ -100,11 +101,19 @@ public class MapActivity extends Activity {
         switch (item.getItemId()) {
 	        case R.id.mode_normal:
 	        	item.setChecked(true);
-	    		mapView.mode = mapView.mode.NORMAL;
+	    		mapView.setMode(Mode.NORMAL);
 	    		return true;
 	    	case R.id.mode_waypoint:
 	        	item.setChecked(true);
-	        	mapView.mode = mapView.mode.WAYPOINT;
+	    		mapView.setMode(Mode.WAYPOINT);
+	    		return true;
+	    	case R.id.mode_graph:
+	        	item.setChecked(true);
+	    		mapView.setMode(Mode.GRAPH);
+	    		return true;
+	    	case R.id.mode_poi:
+	        	item.setChecked(true);
+	    		mapView.setMode(Mode.POI);
 	    		return true;
             case R.id.menu_clear:
                 mapView.clear();

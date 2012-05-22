@@ -13,4 +13,6 @@
     <string name="choose_mode">Mode</string>
     <string name="mode_normal">Normal</string>
     <string name="mode_waypoint">Routing</string>
+    <string name="mode_graph">Graph</string>
+    <string name="mode_poi">POI</string>
 </resources>
