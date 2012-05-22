@@ -52,7 +52,7 @@ public class RouteComponent {
 		Edge prevEdge = null;
 		boolean above = true;
 		int i = 1;
-		paint.setTextSize(10+ms.getScale());
+		paint.setTextSize(10 + ms.getScale());
 		for (Edge e : path) {
 			Vertex startVertex = e.startVertex;
 			float[] start = ms.mapToScreenCoords(startVertex.x, startVertex.y);

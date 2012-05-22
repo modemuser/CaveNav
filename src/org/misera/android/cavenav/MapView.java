@@ -1,10 +1,13 @@
 package org.misera.android.cavenav;
 
+import android.app.AlertDialog;
 import android.content.*;
 import android.graphics.*;
 import android.hardware.*;
 import android.os.*;
+import android.text.Editable;
 import android.view.*;
+import android.widget.EditText;
 
 import org.misera.android.cavenav.graph.Edge;
 import org.misera.android.cavenav.graph.Graph;
@@ -35,9 +38,11 @@ public class MapView extends View {
 	public enum Mode {
 		NORMAL, WAYPOINT, GRAPH, POI
 	}
+	private Context context;
 
 	public MapView(Context context, MapBundle mb) {
 		super(context);
+		this.context = context;
 
 		this.mb = mb;
 		
@@ -118,6 +123,9 @@ public class MapView extends View {
 		if (mode == Mode.GRAPH) {
 			mb.graph.draw(canvas, ms);
 		}
+		
+		// POIs
+		mb.poi.draw(canvas, ms);
 		
 		//route
 		mb.route.draw(canvas, ms);
@@ -228,29 +236,58 @@ public class MapView extends View {
     private OnLongClickListener longClickListener = new OnLongClickListener() {
 		public boolean onLongClick(View v) {
 			selectedVertex = null;
-        	if (mode == Mode.WAYPOINT) {
-				float[] coords = ms.screenToMapCoords(mLastTouchX, mLastTouchY);
-	        	Vertex vertex = mb.graph.nearestVertex((int)coords[0], (int)coords[1]);
-	        	if (vertex != null) {
-	        		mb.route.addWaypoint(vertex);
-	        	}
-	    		mb.route.find();
-        		invalidate();
-        	}
-        	else if (mode == Mode.GRAPH) {
-        		float[] coords = ms.screenToMapCoords(mLastTouchX, mLastTouchY);
-	        	Vertex vertex = mb.graph.nearestVertex((int)coords[0], (int)coords[1]);
-	        	if (vertex != null) {
-	        		mb.route.clear();
-	        		mb.route.addWaypoint(vertex);
-	        		selectedVertex = vertex;
+    		final float[] coords = ms.screenToMapCoords(mLastTouchX, mLastTouchY);
+			switch (mode) {
+				case WAYPOINT: {
+		        	Vertex vertex = mb.graph.nearestVertex((int)coords[0], (int)coords[1]);
+		        	if (vertex != null) {
+		        		mb.route.addWaypoint(vertex);
+		        	}
+		    		mb.route.find();
 	        		invalidate();
-	        	} else {
-	        		mb.route.clear();
-	        		selectedVertex = vertex;
-	        		invalidate();
+	        		return false;
 	        	}
-        	}
+				case GRAPH: {
+		        	Vertex vertex = mb.graph.nearestVertex((int)coords[0], (int)coords[1]);
+		        	if (vertex != null) {
+		        		mb.route.clear();
+		        		mb.route.addWaypoint(vertex);
+		        		selectedVertex = vertex;
+		        		invalidate();
+		        	} else {
+		        		mb.route.clear();
+		        		selectedVertex = vertex;
+		        		invalidate();
+		        	}
+		        	return false;
+	        	}
+				case POI: {
+					AlertDialog.Builder alert = new AlertDialog.Builder(context);
+
+					alert.setTitle("POI");
+					alert.setMessage("give this point a name");
+	
+					// Set an EditText view to get user input 
+					final EditText input = new EditText(context);
+					alert.setView(input);
+	
+					alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int whichButton) {
+							Editable text = input.getText();
+							mb.poi.addPOI((int)coords[0], (int)coords[1], text.toString());
+						}
+					});
+	
+					alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int whichButton) {
+							// Canceled.
+						}	
+					});
+
+					alert.show();
+					return false;
+				}
+			}
 			return false;
         }
     };

@@ -12,12 +12,14 @@ public class MapBundle {
 	public GraphComponent graph;
 	public RouteComponent route;
 	public CenterMarkerComponent centerMarker;
+	public POIComponent poi;
 	public double pixelLength; // length in meters of one pixel in pic
 	
 	public MapBundle(Bitmap pic, double pixelLength) {
 		this.map = new MapComponent(pic);
 		this.pixelLength = pixelLength;
 		this.centerMarker = new CenterMarkerComponent();
+		this.poi = new POIComponent();
 	}
 	
 	public void initGraph(String json) {
