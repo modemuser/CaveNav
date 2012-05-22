@@ -1,8 +1,11 @@
 package org.misera.android.cavenav;
 
 import android.graphics.Matrix;
-import android.graphics.Rect;
 
+/*
+ * This class deals with everything about the conversion between 
+ * screen and map coordinate systems.
+ */
 public class MapScreen {
 	
 	private int screenCenterX;
@@ -14,9 +17,9 @@ public class MapScreen {
 	private Matrix mapToScreenMatrix;
 	private Matrix screenToMapMatrix;
     
-	public MapScreen(Rect screen) {
-		screenCenterX = screen.right / 2;
-		screenCenterY = screen.bottom / 2;
+	public MapScreen(int width, int height) {
+		screenCenterX = width / 2;
+		screenCenterY = height / 2;
 		angle = 0.f;
 	    scaleFactor = 1.f;
 		this.mapToScreenMatrix = new Matrix();

@@ -1,24 +1,22 @@
 package org.misera.android.cavenav;
 
-import java.util.ArrayList;
-
 import android.content.*;
 import android.graphics.*;
 import android.hardware.*;
 import android.os.*;
-import android.util.*;
 import android.view.*;
 
-import org.misera.android.cavenav.graph.AStar;
 import org.misera.android.cavenav.graph.Edge;
-import org.misera.android.cavenav.graph.Edge.Direction;
 import org.misera.android.cavenav.graph.Graph;
 import org.misera.android.cavenav.graph.Vertex;
 
 public class MapView extends View {
 	
-	private Map map;
+	//private Map map;
+	//private Graph graph;
+	private MapBundle mb;
 	private MapScreen ms;
+	
     private ScaleGestureDetector mScaleDetector;
 	private boolean scaling = false;
 	private float mLastTouchY;
@@ -31,26 +29,19 @@ public class MapView extends View {
 	private boolean clickStepping = false;
 	private boolean followEdges = false;
 	private boolean allowRotation;
-	private Graph graph;        
 	private Vertex selectedVertex;
-	ArrayList<Edge> route = new ArrayList<Edge>();
-	private double routeLength = 0;
 	
 	private Mode mode = Mode.NORMAL;
 	public enum Mode {
 		NORMAL, WAYPOINT, GRAPH, POI
 	}
 
-	public MapView(Context context, Bitmap pic, Graph graph) {
+	public MapView(Context context, MapBundle mb) {
 		super(context);
 
-		this.map = new Map(pic);
-		this.graph = graph;
+		this.mb = mb;
 		
-		Rect screen = new Rect();
-		screen.bottom = this.getHeight();
-		screen.right = this.getWidth();
-		ms = new MapScreen(screen);
+		ms = new MapScreen(this.getHeight(), this.getWidth());
 	    
 	    mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 		SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -85,9 +76,7 @@ public class MapView extends View {
 		
 		
     public void clear() {
-		this.map.clearWaypoints();
-		this.route.clear();
-		routeLength = 0;
+		mb.route.clear();
 		invalidate();
     }
     
@@ -107,34 +96,11 @@ public class MapView extends View {
     }
 
 	public void route() {
-		if (map.waypoints.size() > 1) {
-			this.route.clear();
-			routeLength = 0;
-			for (int i=0; i<map.waypoints.size()-1; i++) {
-				graph.clearReferrences();
-				AStar aStar = new AStar(graph);
-				Vertex start = map.waypoints.get(i);
-				Vertex goal = map.waypoints.get(i+1);
-				route.addAll(aStar.getRoute(start, goal));
-			}
-			Edge prevEdge = null;
-			for (Edge e : route) {
-				if(prevEdge != null){
-					double angle = prevEdge.angle(e);
-					Log.i("MapView", "Angle: " + angle);
-					
-				}
-				prevEdge = e;
-				
-				routeLength  += e.length;
-			}
-			invalidate();
-		}
+		mb.route.find();
+		invalidate();
 	}
     
-   
-    
-	
+
 	@Override
     public void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
@@ -148,7 +114,7 @@ public class MapView extends View {
 	    float[] position = ms.getPosition();
 
         
-        map.draw(canvas, ms.getMapToScreenMatrix(), ms.getScale());
+        mb.map.draw(canvas, ms);
 		
         // bullseye at center
 	    Paint paint = new Paint();
@@ -159,7 +125,7 @@ public class MapView extends View {
 	    canvas.drawCircle(screenCenter[0], screenCenter[1], 5, paint);
 	    
 	    // debug overlay
-	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f), route length: %.1fm", ms.getAngle(), ms.getScale(), position[0], position[1], routeLength/2);
+	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f), route length: %.1fm", ms.getAngle(), ms.getScale(), position[0], position[1], mb.route.length);
 	    if(scaling){
 			debug += "[SCALING] ";
 		}
@@ -167,66 +133,10 @@ public class MapView extends View {
 		
 		// draw graph
 		if (mode == Mode.GRAPH) {
-			// vertices
-			paint.setColor(Color.rgb(0, 127, 0));
-			paint.setStyle(Paint.Style.FILL_AND_STROKE);
-			for (Integer key : graph.vertices.keySet()) {
-				Vertex v = graph.vertices.get(key);
-				float[] coords = ms.mapToScreenCoords(v.x, v.y);
-				canvas.drawCircle(coords[0], coords[1], ms.getScale(), paint);
-			}
-			// edges
-			for (Integer key : graph.edges.keySet()) {
-				Edge e = graph.edges.get(key);
-				Vertex startVertex = e.startVertex;
-				float[] start = ms.mapToScreenCoords(startVertex.x, startVertex.y);
-				Vertex endVertex = e.endVertex;
-				float[] end = ms.mapToScreenCoords(endVertex.x, endVertex.y);
-				canvas.drawLine(start[0], start[1], end[0], end[1], paint);
-			}
+			mb.graph.draw(canvas, ms);
 		}
 		
-		// route
-		Edge prevEdge = null;
-		boolean above = true;
-		int i = 1;
-		
-
-		paint.setColor(Color.YELLOW);
-		paint.setTextSize(10+ms.getScale());
-		for (Edge e : route) {
-
-			
-			Vertex startVertex = e.startVertex;
-			float[] start = ms.mapToScreenCoords(startVertex.x, startVertex.y);
-			Vertex endVertex = e.endVertex;
-			float[] end = ms.mapToScreenCoords(endVertex.x, endVertex.y);
-			canvas.drawLine(start[0], start[1], end[0], end[1], paint);
-			
-			// only show directions when resolution shown > 1 meter per pixel
-			if (ms.getScale() > 1 / map.pixelLength) {
-				double distance = Math.round(e.length) * map.pixelLength;
-				float[] midLine = { start[0] + (end[0] - start[0]) / 2, start[1] + (end[1] - start[1]) / 2};
-				canvas.drawText(distance + "m", midLine[0] + 10, midLine[1], paint);
-				
-				// For routes with more than 2 markers, results are useless
-				//if(map.markers.size() == 2){
-					if(prevEdge != null){
-						double angle = prevEdge.angle(e);
-						Log.i("MapView", "Angle: " + angle);
-						Direction d = prevEdge.direction(e);
-						
-						if(d != Direction.STRAIGHT){
-							//canvas.drawText("(" + i + ")" + Math.floor(angle) + "°", end[0], above ? end[1] - 10 : end[1] + 10, paint);
-							canvas.drawText("(" + i + ")" + (d == Direction.LEFT ? "Left" : "Right") , end[0], above ? end[1] - 10 : end[1] + 10, paint);
-							above = !above;
-							i += 1;
-						}
-					}
-					prevEdge = e;				
-				//}
-			}
-		}
+		mb.route.draw(canvas, ms);
 		
 		if(hasRayCaster){
 			RayCaster rayCaster = rayCastRenderer.rayCaster;
@@ -338,23 +248,23 @@ public class MapView extends View {
 			selectedVertex = null;
         	if (mode == Mode.WAYPOINT) {
 				float[] coords = ms.screenToMapCoords(mLastTouchX, mLastTouchY);
-	        	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
+	        	Vertex vertex = mb.graph.graph.nearestVertex((int)coords[0], (int)coords[1]);
 	        	if (vertex != null) {
-	        		map.addWaypoint(vertex);
+	        		mb.route.addWaypoint(vertex);
 	        		invalidate();
 	        	}
 	        	route();
         	}
         	else if (mode == Mode.GRAPH) {
         		float[] coords = ms.screenToMapCoords(mLastTouchX, mLastTouchY);
-	        	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
+	        	Vertex vertex = mb.graph.graph.nearestVertex((int)coords[0], (int)coords[1]);
 	        	if (vertex != null) {
-	        		map.clearWaypoints();
-	        		map.addWaypoint(vertex);
+	        		mb.route.clear();
+	        		mb.route.addWaypoint(vertex);
 	        		selectedVertex = vertex;
 	        		invalidate();
 	        	} else {
-	        		map.clearWaypoints();
+	        		mb.route.clear();
 	        		selectedVertex = vertex;
 	        		invalidate();
 	        	}
@@ -369,7 +279,7 @@ public class MapView extends View {
 				float stepLength = 0.75f;
 				
 				float dx = 0;
-				float dy = -(stepLength / map.pixelLength);
+				float dy = (float) -(stepLength / mb.pixelLength);
 				
 				ms.move(dx, dy);
 				invalidate();
@@ -386,7 +296,7 @@ public class MapView extends View {
 		// find shortest distance from C to point P on edge E
 		float[] p = null;
 		double shortestDistance = Double.MAX_VALUE;
-		for (Edge edge : graph.edges.values()) {
+		for (Edge edge : mb.graph.graph.edges.values()) {
 			float[] closest = Graph.closestPointOnEdge(c[0], c[1], edge);
 			double dist = Graph.distance(c[0], c[1], closest[0], closest[1]);
 			if (dist < shortestDistance) {

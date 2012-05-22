@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.misera.android.cavenav.MapView.Mode;
-import org.misera.android.cavenav.graph.Graph;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -49,9 +47,13 @@ public class MapActivity extends Activity {
 	private void load(String filename) {	
 		Bitmap pic = getBitmapFromAsset(filename);
 		String json = getStringFromAsset("caestert.json");
-		Graph graph = new Graph(json);
 		
-		mapView = new MapView(this, pic, graph);
+		MapBundle mb = new MapBundle();
+		double pixelLength = 0.5;
+		mb.initMap(pic, pixelLength);
+		mb.initGraph(json);
+		
+		mapView = new MapView(this, mb);
 		mapView.setMode(Mode.NORMAL);
 		
 		Bitmap map = getBitmapFromAsset("caestert_canny.png");
