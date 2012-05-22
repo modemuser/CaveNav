@@ -33,7 +33,7 @@ public class MapView extends View {
 	private boolean hasRayCaster = false;
 	
 	private boolean clickStepping = false;
-	private boolean showPaths = false;
+	private boolean followEdges = false;
 	private boolean allowRotation;
 	private Graph graph;
 	private Matrix mapToScreenMatrix;
@@ -85,12 +85,12 @@ public class MapView extends View {
 	public void toggleClickStepping() {
 		this.clickStepping = !this.clickStepping;
 	}
-		
-	public void togglePaths() {
-		this.showPaths = !this.showPaths ;
-		invalidate();
-	}
 	
+	public void toggleFollowEdges() {
+		this.followEdges = !this.followEdges;
+	}
+		
+		
     public void clear() {
 		this.map.clearWaypoints();
 		this.route.clear();
@@ -102,12 +102,10 @@ public class MapView extends View {
     	this.mode = mode;
     	switch (mode) {
     		case GRAPH: {
-    			showPaths = true;
     			allowRotation = false;
     			break;
     		}
     		default: {
-    			showPaths = false;
     			allowRotation = true;
     		}
     	}
@@ -181,7 +179,9 @@ public class MapView extends View {
 		super.onDraw(canvas);
 	    canvas.save();
 	    
-	    centerOnNearestEdge();
+	    if (followEdges) {
+	    	centerOnNearestEdge();
+	    }
 	    updateMapToScreenMatrix();
 
         
@@ -203,7 +203,7 @@ public class MapView extends View {
 		canvas.drawText(debug, 10, 10, paint);
 		
 		// draw graph
-		if (mode == Mode.GRAPH || showPaths) {
+		if (mode == Mode.GRAPH) {
 			// vertices
 			paint.setColor(Color.rgb(0, 127, 0));
 			paint.setStyle(Paint.Style.FILL_AND_STROKE);

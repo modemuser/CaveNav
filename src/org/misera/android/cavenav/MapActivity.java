@@ -167,14 +167,14 @@ public class MapActivity extends Activity {
             case R.id.menu_clear:
                 mapView.clear();
                 return true;
-            case R.id.toggle_paths:
-            	item.setChecked(!item.isChecked());
-                mapView.togglePaths();
-                return true;
             case R.id.click_stepping:
             	item.setChecked(!item.isChecked());
                 mapView.toggleClickStepping();
                 return true;
+            case R.id.follow_edes:
+            	item.setChecked(!item.isChecked());
+            	mapView.toggleFollowEdges();
+            	return true;
             case R.id.caestert_negative:
             	load("caestert_negative.png");
             	return true;

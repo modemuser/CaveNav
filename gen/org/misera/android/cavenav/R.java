@@ -21,6 +21,7 @@ public final class R {
         public static final int click_stepping=0x7f06000a;
         public static final int contentMain=0x7f060000;
         public static final int contentSide=0x7f060001;
+        public static final int follow_edes=0x7f06000b;
         public static final int geogif=0x7f06000f;
         public static final int menu_clear=0x7f060008;
         public static final int miniMap=0x7f060002;
@@ -29,7 +30,6 @@ public final class R {
         public static final int mode_poi=0x7f060007;
         public static final int mode_waypoint=0x7f060005;
         public static final int switch_views=0x7f060009;
-        public static final int toggle_paths=0x7f06000b;
     }
     public static final class layout {
         public static final int main=0x7f030000;
@@ -44,6 +44,7 @@ public final class R {
         public static final int choose_map=0x7f040004;
         public static final int choose_mode=0x7f04000a;
         public static final int click_stepping=0x7f040002;
+        public static final int follow_edges=0x7f040003;
         public static final int geogif=0x7f040007;
         public static final int menu_clear=0x7f040001;
         public static final int mode_graph=0x7f04000d;
@@ -52,6 +53,5 @@ public final class R {
         public static final int mode_waypoint=0x7f04000c;
         public static final int route=0x7f040009;
         public static final int switch_views=0x7f040008;
-        public static final int toggle_paths=0x7f040003;
     }
 }
