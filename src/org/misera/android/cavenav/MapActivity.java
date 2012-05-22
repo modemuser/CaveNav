@@ -6,6 +6,7 @@ import java.io.InputStream;
 import org.misera.android.cavenav.graph.Graph;
 
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,11 +23,15 @@ public class MapActivity extends Activity {
     private RayCastRendererView rayCastView;
     
     private boolean mapIsMainView = true;
+    private boolean hasFlashLight;
+    private boolean flashLightEnabled = false;
 
 
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        hasFlashLight = this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
         
         getWindow().setFlags(
         		WindowManager.LayoutParams.FLAG_FULLSCREEN, 
