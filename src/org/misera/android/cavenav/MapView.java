@@ -437,7 +437,7 @@ public class MapView extends View {
 	        		invalidate();
 	        	} else {
 	        		map.clearWaypoints();
-	        		selectedVertex = null;
+	        		selectedVertex = vertex;
 	        		invalidate();
 	        	}
         	}
