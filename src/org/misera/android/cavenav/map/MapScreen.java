@@ -1,4 +1,4 @@
-package org.misera.android.cavenav;
+package org.misera.android.cavenav.map;
 
 import android.graphics.Matrix;
 import android.view.Display;

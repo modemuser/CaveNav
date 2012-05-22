@@ -1,4 +1,5 @@
-package org.misera.android.cavenav;
+package org.misera.android.cavenav.raycaster;
+
 
 import android.graphics.Bitmap;
 import android.graphics.Color;

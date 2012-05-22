@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.misera.android.cavenav.MapView.Mode;
+import org.misera.android.cavenav.map.MapBundle;
+import org.misera.android.cavenav.raycaster.RayCastRendererView;
 
 import android.app.Activity;
 import android.content.pm.PackageManager;

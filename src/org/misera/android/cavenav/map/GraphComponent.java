@@ -1,4 +1,4 @@
-package org.misera.android.cavenav;
+package org.misera.android.cavenav.map;
 
 import org.misera.android.cavenav.graph.Edge;
 import org.misera.android.cavenav.graph.Graph;

@@ -1,4 +1,4 @@
-package org.misera.android.cavenav;
+package org.misera.android.cavenav.raycaster;
 
 import android.content.*;
 import android.graphics.*;
@@ -7,6 +7,7 @@ import android.view.*;
 import android.view.View.OnClickListener;
 
 import java.util.*;
+
 
 public class RayCastRendererView extends View
 {
