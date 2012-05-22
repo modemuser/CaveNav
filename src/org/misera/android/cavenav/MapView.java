@@ -12,8 +12,6 @@ import org.misera.android.cavenav.graph.Vertex;
 
 public class MapView extends View {
 	
-	//private Map map;
-	//private Graph graph;
 	private MapBundle mb;
 	private MapScreen ms;
 	
@@ -21,14 +19,12 @@ public class MapView extends View {
 	private boolean scaling = false;
 	private float mLastTouchY;
 	private float mLastTouchX;
-	private Display mDisplay;
 
 	private RayCastRendererView rayCastRenderer;	
 	private boolean hasRayCaster = false;
 	
 	private boolean clickStepping = false;
 	private boolean followEdges = false;
-	private boolean allowRotation;
 	private Vertex selectedVertex;
 	
 	private Mode mode = Mode.NORMAL;
@@ -41,20 +37,19 @@ public class MapView extends View {
 
 		this.mb = mb;
 		
-		ms = new MapScreen(this.getHeight(), this.getWidth());
-	    
 	    mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 		SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         Sensor mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 	    mSensorManager.registerListener(mListener, mSensor, SensorManager.SENSOR_DELAY_UI);
 		
 		this.setOnClickListener(clickListener);
-	    
 	    this.setOnLongClickListener(longClickListener);
 	    
 	    WindowManager mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-	    mDisplay = mWindowManager.getDefaultDisplay();
+	    Display display = mWindowManager.getDefaultDisplay();
 	    
+		this.ms = new MapScreen(display);
+	    ms.setDimensions(this.getWidth(), this.getHeight());
 	}  
 	
 
@@ -84,21 +79,16 @@ public class MapView extends View {
     	this.mode = mode;
     	switch (mode) {
     		case GRAPH: {
-    			allowRotation = false;
-    			ms.setAngle(-90 * mDisplay.getOrientation());
+    			ms.setAllowRotation(false);
     			break;
     		}
     		default: {
-    			allowRotation = true;
+    			ms.setAllowRotation(true);
     		}
     	}
     	invalidate();
     }
 
-	public void route() {
-		mb.route.find();
-		invalidate();
-	}
     
 
 	@Override
@@ -109,38 +99,39 @@ public class MapView extends View {
 	    if (followEdges) {
 	    	centerOnNearestEdge();
 	    }
-	    ms.updateMapToScreenMatrix(this.getWidth(), this.getHeight());
+	    ms.setDimensions(this.getWidth(), this.getHeight());
+	    ms.update();
 	    int[] screenCenter = ms.getScreenCenter();
 	    float[] position = ms.getPosition();
 
-        
+        // map
         mb.map.draw(canvas, ms);
 		
         // bullseye at center
-	    Paint paint = new Paint();
-	    paint.setColor(Color.RED);
-	    canvas.drawCircle(screenCenter[0], screenCenter[1], 1, paint);
-	    paint.setStyle(Paint.Style.STROKE);
-	    canvas.drawCircle(screenCenter[0], screenCenter[1], 3, paint);
-	    canvas.drawCircle(screenCenter[0], screenCenter[1], 5, paint);
-	    
-	    // debug overlay
-	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f), route length: %.1fm", ms.getAngle(), ms.getScale(), position[0], position[1], mb.route.length);
-	    if(scaling){
-			debug += "[SCALING] ";
-		}
-		canvas.drawText(debug, 10, 10, paint);
-		
-		// draw graph
+        mb.centerMarker.draw(canvas, ms);
+	    	    		
+		// graph
 		if (mode == Mode.GRAPH) {
 			mb.graph.draw(canvas, ms);
 		}
 		
+		//route
 		mb.route.draw(canvas, ms);
+		
+		// debug overlay
+	    Paint paint = new Paint();
+	    paint.setColor(Color.WHITE);
+	    paint.setTextSize(10);
+	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f)", 
+	    				ms.getAngle(), ms.getScale(), position[0], position[1]);
+	    if(scaling){
+			debug += "[SCALING] ";
+		}
+		canvas.drawText(debug, 5, 10, paint);
 		
 		if(hasRayCaster){
 			RayCaster rayCaster = rayCastRenderer.rayCaster;
-			
+
 			rayCaster.playerPos[0] = (int) Math.floor(position[0] + screenCenter[0]);
 			rayCaster.playerPos[1] = (int) Math.floor(position[1] + screenCenter[1]);
 			rayCaster.viewingAngle =  ms.getAngle() + 90;
@@ -210,11 +201,9 @@ public class MapView extends View {
 	    public boolean onScale(ScaleGestureDetector detector) {
 			scaling = true;
 	        float newScale = ms.getScale() * detector.getScaleFactor();
-
 	        // Don't let the object get too small or too large.
 	        newScale = Math.max(0.1f, Math.min(newScale, 10.0f));
 	        ms.setScale(newScale);
-
 	        invalidate();
 	        return true;
 	    }
@@ -222,20 +211,9 @@ public class MapView extends View {
 	
 	private final SensorEventListener mListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
-        	if (allowRotation) {
-	        	float _heading = event.values[0];
-	        	// make the heading compatible to the transform matrix:
-	        	// 1. invert sign of heading to turn the other way
-	        	// 2. take into account screen orientation
-	        	float angleNew = -_heading - 90*mDisplay.getOrientation();
-	        	// to smooth the rotation, only rotate if angle changes significantly
-	        	if (Math.abs(ms.getAngle() - angleNew) > 0.3) {
-	        		ms.setAngle(angleNew);
-	                invalidate();
-	        	}
-        	} else {
-        		ms.setAngle(-90 * mDisplay.getOrientation());
-        	}
+        	float heading = event.values[0];
+    		ms.setAngle(heading);
+            invalidate();
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -248,16 +226,16 @@ public class MapView extends View {
 			selectedVertex = null;
         	if (mode == Mode.WAYPOINT) {
 				float[] coords = ms.screenToMapCoords(mLastTouchX, mLastTouchY);
-	        	Vertex vertex = mb.graph.graph.nearestVertex((int)coords[0], (int)coords[1]);
+	        	Vertex vertex = mb.graph.nearestVertex((int)coords[0], (int)coords[1]);
 	        	if (vertex != null) {
 	        		mb.route.addWaypoint(vertex);
-	        		invalidate();
 	        	}
-	        	route();
+	    		mb.route.find();
+        		invalidate();
         	}
         	else if (mode == Mode.GRAPH) {
         		float[] coords = ms.screenToMapCoords(mLastTouchX, mLastTouchY);
-	        	Vertex vertex = mb.graph.graph.nearestVertex((int)coords[0], (int)coords[1]);
+	        	Vertex vertex = mb.graph.nearestVertex((int)coords[0], (int)coords[1]);
 	        	if (vertex != null) {
 	        		mb.route.clear();
 	        		mb.route.addWaypoint(vertex);
@@ -296,7 +274,7 @@ public class MapView extends View {
 		// find shortest distance from C to point P on edge E
 		float[] p = null;
 		double shortestDistance = Double.MAX_VALUE;
-		for (Edge edge : mb.graph.graph.edges.values()) {
+		for (Edge edge : mb.graph.edges.values()) {
 			float[] closest = Graph.closestPointOnEdge(c[0], c[1], edge);
 			double dist = Graph.distance(c[0], c[1], closest[0], closest[1]);
 			if (dist < shortestDistance) {
@@ -311,8 +289,4 @@ public class MapView extends View {
 		
 	}
 	
-	
-	
-
-
 }

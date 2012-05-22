@@ -8,12 +8,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 
-public class GraphComponent {
+public class GraphComponent extends Graph{
 	
-	public Graph graph;
-
 	public GraphComponent(String json) {
-		this.graph = new Graph(json);
+		super(json);
 	}
 	
 	public Canvas draw(Canvas canvas, MapScreen ms) {
@@ -21,14 +19,14 @@ public class GraphComponent {
 		paint.setColor(Color.rgb(0, 127, 0));
 		paint.setStyle(Paint.Style.FILL_AND_STROKE);
 		// vertices
-		for (Integer key : graph.vertices.keySet()) {
-			Vertex v = graph.vertices.get(key);
+		for (Integer key : this.vertices.keySet()) {
+			Vertex v = this.vertices.get(key);
 			float[] coords = ms.mapToScreenCoords(v.x, v.y);
 			canvas.drawCircle(coords[0], coords[1], ms.getScale(), paint);
 		}
 		// edges
-		for (Integer key : graph.edges.keySet()) {
-			Edge e = graph.edges.get(key);
+		for (Integer key : this.edges.keySet()) {
+			Edge e = this.edges.get(key);
 			Vertex startVertex = e.startVertex;
 			float[] start = ms.mapToScreenCoords(startVertex.x, startVertex.y);
 			Vertex endVertex = e.endVertex;

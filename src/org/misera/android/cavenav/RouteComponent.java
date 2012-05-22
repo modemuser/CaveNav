@@ -15,14 +15,14 @@ import android.util.Log;
 
 public class RouteComponent {
 	
-	private Graph graph;
 	public ArrayList<Vertex> waypoints;
 	public ArrayList<Edge> path = new ArrayList<Edge>();
 	public double length = 0;
 	private double pixelLength;
+	private Graph graph;
 
 	public RouteComponent(GraphComponent graph, double pixelLength) {
-		this.graph = graph.graph;
+		this.graph = graph;
 		this.waypoints = new ArrayList<Vertex>();
 		this.pixelLength = pixelLength;
 	}
@@ -31,16 +31,27 @@ public class RouteComponent {
 		Paint paint = new Paint();
 		paint.setColor(Color.YELLOW);
 		paint.setStyle(Paint.Style.FILL_AND_STROKE);
+		paint.setTextSize(24);
 		
+		// waypoints
 		for (Vertex p : waypoints) {
 			float[] coords = ms.mapToScreenCoords(p.x, p.y);
 			canvas.drawCircle(coords[0], coords[1], 5*ms.getScale(), paint);
 		}
-
+		
+		if (waypoints.size() < 2) {
+			return canvas;
+		}
+		
+		// route length overlay
+		String debug = String.format("route length: %.0fm", this.length);
+		canvas.drawText(debug, 5, ms.getScreenCenter()[1]*2 - 5, paint);
+		
+		
+		// edges with directions
 		Edge prevEdge = null;
 		boolean above = true;
 		int i = 1;
-		paint.setColor(Color.YELLOW);
 		paint.setTextSize(10+ms.getScale());
 		for (Edge e : path) {
 			Vertex startVertex = e.startVertex;
@@ -108,6 +119,7 @@ public class RouteComponent {
 				
 				length  += e.length;
 			}
+			length *= this.pixelLength;
 		}
 	}
 	

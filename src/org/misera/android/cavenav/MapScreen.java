@@ -1,6 +1,7 @@
 package org.misera.android.cavenav;
 
 import android.graphics.Matrix;
+import android.view.Display;
 
 /*
  * This class deals with everything about the conversion between 
@@ -16,22 +17,38 @@ public class MapScreen {
     private float scaleFactor;
 	private Matrix mapToScreenMatrix;
 	private Matrix screenToMapMatrix;
+	private Display display;
+	private boolean allowRotation;
     
-	public MapScreen(int width, int height) {
-		screenCenterX = width / 2;
-		screenCenterY = height / 2;
+	public MapScreen(Display display) {
+		this.display = display;
 		angle = 0.f;
 	    scaleFactor = 1.f;
 		this.mapToScreenMatrix = new Matrix();
 		this.screenToMapMatrix = new Matrix();
+	}
+
+	public void setDimensions(int width, int height) {		
+		screenCenterX = width / 2;
+		screenCenterY = height / 2;
+	}
+	
+	public void setAllowRotation(boolean value) {
+		this.allowRotation = value;
 	}
 		
 	public float getAngle() {
 		return this.angle;
 	}
 	
-	public void setAngle(float angle) {
-		this.angle = angle;
+	public void setAngle(float heading) {
+		// to make the angle compatible with the transform matrix:
+    	// 1. invert sign of heading to turn the other way
+		// 2. take screen orientation into account
+		if (!allowRotation) {
+			heading = 0;
+		}
+		this.angle = -heading - 90 * display.getOrientation();
 	}
 
 	public float getScale() {
@@ -58,7 +75,7 @@ public class MapScreen {
 	
 
 	/*
-	 * move the map by dx, dy (in map pixels)
+	 * move the map by dx, dy (in map pixels, but screen orientation :/ )
 	 */
 	public void move(float dx, float dy) {
 		float[] transformed = rotateMovementScreenToMap(dx, dy);
@@ -88,11 +105,7 @@ public class MapScreen {
 		return out;
 	}
 	
-
-	public void updateMapToScreenMatrix(int width, int height) {		
-		screenCenterX = width / 2;
-		screenCenterY = height / 2;
-
+	public void update() {
 		mapToScreenMatrix.reset();
 		
 		/* 

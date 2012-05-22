@@ -48,9 +48,8 @@ public class MapActivity extends Activity {
 		Bitmap pic = getBitmapFromAsset(filename);
 		String json = getStringFromAsset("caestert.json");
 		
-		MapBundle mb = new MapBundle();
 		double pixelLength = 0.5;
-		mb.initMap(pic, pixelLength);
+		MapBundle mb = new MapBundle(pic, pixelLength);
 		mb.initGraph(json);
 		
 		mapView = new MapView(this, mb);
