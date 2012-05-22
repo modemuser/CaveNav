@@ -35,7 +35,8 @@ public class MapView extends View {
 	private boolean clickStepping = false;
 	private boolean followEdges = false;
 	private boolean allowRotation;
-	private Graph graph;
+	private Graph graph;        
+	private Vertex selectedVertex;
 	private Matrix mapToScreenMatrix;
 	private Matrix screenToMapMatrix;
 	private int centerX;
@@ -103,6 +104,7 @@ public class MapView extends View {
     	switch (mode) {
     		case GRAPH: {
     			allowRotation = false;
+    			angle = -90 * mDisplay.getOrientation();
     			break;
     		}
     		default: {
@@ -354,9 +356,14 @@ public class MapView extends View {
 					float[] mapCoords = rotateMovementScreenToMap(angle, dx, dy);
 					
 					// Move the object
-					mPosX -= mapCoords[0] / mScaleFactor;
-					mPosY -= mapCoords[1] / mScaleFactor;
-
+					if (selectedVertex == null) {
+						mPosX -= mapCoords[0] / mScaleFactor;
+						mPosY -= mapCoords[1] / mScaleFactor;
+					} else {
+						selectedVertex.x += dx / mScaleFactor;
+						selectedVertex.y += dy / mScaleFactor;
+					}
+					
 					// Remember this touch position for the next move event
 					mLastTouchX = x;
 					mLastTouchY = y;
@@ -399,7 +406,7 @@ public class MapView extends View {
 	                invalidate();
 	        	}
         	} else {
-        		angle = 0;
+        		angle = -90 * mDisplay.getOrientation();
         	}
         }
 
@@ -409,7 +416,8 @@ public class MapView extends View {
     
     
     private OnLongClickListener longClickListener = new OnLongClickListener() {
-        public boolean onLongClick(View v) {
+		public boolean onLongClick(View v) {
+			selectedVertex = null;
         	if (mode == Mode.WAYPOINT) {
 				float[] coords = screenToMapCoords(mLastTouchX, mLastTouchY);
 	        	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
@@ -418,6 +426,20 @@ public class MapView extends View {
 	        		invalidate();
 	        	}
 	        	route();
+        	}
+        	else if (mode == Mode.GRAPH) {
+        		float[] coords = screenToMapCoords(mLastTouchX, mLastTouchY);
+	        	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
+	        	if (vertex != null) {
+	        		map.clearWaypoints();
+	        		map.addWaypoint(vertex);
+	        		selectedVertex = vertex;
+	        		invalidate();
+	        	} else {
+	        		map.clearWaypoints();
+	        		selectedVertex = null;
+	        		invalidate();
+	        	}
         	}
 			return false;
         }

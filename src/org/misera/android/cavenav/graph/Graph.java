@@ -66,7 +66,7 @@ public class Graph {
 				}
 			}
 		}
-		if (distOut < 50) {
+		if (distOut < 10) {
 			return out;
 		} else {
 			return null;
