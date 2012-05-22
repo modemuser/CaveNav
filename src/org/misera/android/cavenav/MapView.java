@@ -360,8 +360,10 @@ public class MapView extends View {
 						mPosX -= mapCoords[0] / mScaleFactor;
 						mPosY -= mapCoords[1] / mScaleFactor;
 					} else {
-						selectedVertex.x += dx / mScaleFactor;
-						selectedVertex.y += dy / mScaleFactor;
+						float[] mapPosition = screenToMapCoords(x,y);
+						
+						selectedVertex.x = (int) mapPosition[0];
+						selectedVertex.y = (int) mapPosition[1];
 					}
 					
 					// Remember this touch position for the next move event
