@@ -18,15 +18,11 @@ import org.misera.android.cavenav.graph.Vertex;
 public class MapView extends View {
 	
 	private Map map;
-    private Rect screen = new Rect();
+	private MapScreen ms;
     private ScaleGestureDetector mScaleDetector;
-    private float mScaleFactor = 1.f;
 	private boolean scaling = false;
 	private float mLastTouchY;
 	private float mLastTouchX;
-	private float mPosX;
-	private float mPosY;
-	private float angle = 0.f;
 	private Display mDisplay;
 
 	private RayCastRendererView rayCastRenderer;	
@@ -37,10 +33,6 @@ public class MapView extends View {
 	private boolean allowRotation;
 	private Graph graph;        
 	private Vertex selectedVertex;
-	private Matrix mapToScreenMatrix;
-	private Matrix screenToMapMatrix;
-	private int centerX;
-	private int centerY;
 	ArrayList<Edge> route = new ArrayList<Edge>();
 	private double routeLength = 0;
 	
@@ -54,11 +46,11 @@ public class MapView extends View {
 
 		this.map = new Map(pic);
 		this.graph = graph;
-		this.mapToScreenMatrix = new Matrix();
-		this.screenToMapMatrix = new Matrix();
 		
+		Rect screen = new Rect();
 		screen.bottom = this.getHeight();
 		screen.right = this.getWidth();
+		ms = new MapScreen(screen);
 	    
 	    mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 		SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -104,7 +96,7 @@ public class MapView extends View {
     	switch (mode) {
     		case GRAPH: {
     			allowRotation = false;
-    			angle = -90 * mDisplay.getOrientation();
+    			ms.setAngle(-90 * mDisplay.getOrientation());
     			break;
     		}
     		default: {
@@ -140,40 +132,7 @@ public class MapView extends View {
 		}
 	}
     
-    private void updateMapToScreenMatrix() {
-    	mapToScreenMatrix.reset();
-	    
-		screen.bottom = this.getHeight();
-		screen.right = this.getWidth();
-
-    	centerX = screen.right/2;
-    	centerY = screen.bottom/2;
-
-		float x = mPosX;
-		float y = mPosY;
-
-		/* 
-			Convert the point that is C in the viewport coordinate system
-			to map coordinate system and move it to (0,0)
-		*/
-		mapToScreenMatrix.setTranslate(-(centerX + x), -(centerY + y));
-		
-		/* 
-			Now rotate the map around point (0,0) which 
-			now corresponds to the viewport center
-		*/
-		mapToScreenMatrix.postRotate(angle, 0,0);		
-		
-		/* 
-			Move map back so that only the (x,y) offset remains
-		*/
-		mapToScreenMatrix.postTranslate((centerX), (centerY));
-
-		/*
-		 	Scale around the C
-		 */
-		mapToScreenMatrix.postScale(mScaleFactor, mScaleFactor, centerX, centerY);
-    }
+   
     
 	
 	@Override
@@ -184,21 +143,23 @@ public class MapView extends View {
 	    if (followEdges) {
 	    	centerOnNearestEdge();
 	    }
-	    updateMapToScreenMatrix();
+	    ms.updateMapToScreenMatrix(this.getWidth(), this.getHeight());
+	    int[] screenCenter = ms.getScreenCenter();
+	    float[] position = ms.getPosition();
 
         
-        map.draw(canvas, mapToScreenMatrix, mScaleFactor);
+        map.draw(canvas, ms.getMapToScreenMatrix(), ms.getScale());
 		
         // bullseye at center
 	    Paint paint = new Paint();
 	    paint.setColor(Color.RED);
-	    canvas.drawCircle(centerX, centerY, 1, paint);
+	    canvas.drawCircle(screenCenter[0], screenCenter[1], 1, paint);
 	    paint.setStyle(Paint.Style.STROKE);
-	    canvas.drawCircle(centerX, centerY, 3, paint);
-	    canvas.drawCircle(centerX, centerY, 5, paint);
+	    canvas.drawCircle(screenCenter[0], screenCenter[1], 3, paint);
+	    canvas.drawCircle(screenCenter[0], screenCenter[1], 5, paint);
 	    
 	    // debug overlay
-	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f), route length: %.1fm", angle, mScaleFactor, mPosX, mPosY, routeLength/2);
+	    String debug = String.format("angle: %.2f, zoom: %.3f (x,y): (%.1f,%.1f), route length: %.1fm", ms.getAngle(), ms.getScale(), position[0], position[1], routeLength/2);
 	    if(scaling){
 			debug += "[SCALING] ";
 		}
@@ -211,19 +172,16 @@ public class MapView extends View {
 			paint.setStyle(Paint.Style.FILL_AND_STROKE);
 			for (Integer key : graph.vertices.keySet()) {
 				Vertex v = graph.vertices.get(key);
-				float[] coords = {v.x, v.y};
-				mapToScreenMatrix.mapPoints(coords);
-				canvas.drawCircle(coords[0], coords[1], mScaleFactor, paint);
+				float[] coords = ms.mapToScreenCoords(v.x, v.y);
+				canvas.drawCircle(coords[0], coords[1], ms.getScale(), paint);
 			}
 			// edges
 			for (Integer key : graph.edges.keySet()) {
 				Edge e = graph.edges.get(key);
 				Vertex startVertex = e.startVertex;
-				float[] start = {startVertex.x, startVertex.y};
-				mapToScreenMatrix.mapPoints(start);
+				float[] start = ms.mapToScreenCoords(startVertex.x, startVertex.y);
 				Vertex endVertex = e.endVertex;
-				float[] end = {endVertex.x, endVertex.y};
-				mapToScreenMatrix.mapPoints(end);
+				float[] end = ms.mapToScreenCoords(endVertex.x, endVertex.y);
 				canvas.drawLine(start[0], start[1], end[0], end[1], paint);
 			}
 		}
@@ -235,20 +193,18 @@ public class MapView extends View {
 		
 
 		paint.setColor(Color.YELLOW);
-		paint.setTextSize(10+mScaleFactor);
+		paint.setTextSize(10+ms.getScale());
 		for (Edge e : route) {
 
 			
 			Vertex startVertex = e.startVertex;
-			float[] start = {startVertex.x, startVertex.y};
-			mapToScreenMatrix.mapPoints(start);
+			float[] start = ms.mapToScreenCoords(startVertex.x, startVertex.y);
 			Vertex endVertex = e.endVertex;
-			float[] end = {endVertex.x, endVertex.y};
-			mapToScreenMatrix.mapPoints(end);
+			float[] end = ms.mapToScreenCoords(endVertex.x, endVertex.y);
 			canvas.drawLine(start[0], start[1], end[0], end[1], paint);
 			
 			// only show directions when resolution shown > 1 meter per pixel
-			if (mScaleFactor > 1 / map.pixelLength) {
+			if (ms.getScale() > 1 / map.pixelLength) {
 				double distance = Math.round(e.length) * map.pixelLength;
 				float[] midLine = { start[0] + (end[0] - start[0]) / 2, start[1] + (end[1] - start[1]) / 2};
 				canvas.drawText(distance + "m", midLine[0] + 10, midLine[1], paint);
@@ -275,53 +231,16 @@ public class MapView extends View {
 		if(hasRayCaster){
 			RayCaster rayCaster = rayCastRenderer.rayCaster;
 			
-			rayCaster.playerPos[0] = (int) Math.floor(mPosX + centerX);
-			rayCaster.playerPos[1] = (int) Math.floor(mPosY + centerY);
-			rayCaster.viewingAngle =  angle + 90;
+			rayCaster.playerPos[0] = (int) Math.floor(position[0] + screenCenter[0]);
+			rayCaster.playerPos[1] = (int) Math.floor(position[1] + screenCenter[1]);
+			rayCaster.viewingAngle =  ms.getAngle() + 90;
 			
 			rayCastRenderer.invalidate();
 			
 		}
 	    canvas.restore();
     }
-
-	private float[] rotateMovementScreenToMap(float angle, float xMap,float yMap){
-		
-		float x = xMap;
-		float y = yMap;
-		
-		// Convert x,y to polar coords
-
-		double r = Math.sqrt(x*x + y*y);
-		double theta = Math.atan2(y,x);
-
-		// Rotate by angle
-		double rotation = angle * Math.PI / 180;
-		theta -= rotation;
-
-		// Convert back to cartesian coords
-
-		x = (float) (r * Math.cos(theta));
-		y = (float) (r * Math.sin(theta));
-		
-		float[] returnArray = {x,y};
-		return returnArray;
-	}
 	
-	
-	private float[] screenToMapCoords(float xScreen, float yScreen) {
-		mapToScreenMatrix.invert(screenToMapMatrix);
-		float[] out = {xScreen, yScreen};
-		screenToMapMatrix.mapPoints(out);
-		return out;
-	}
-	
-	private float[] mapToScreenCoords(float xMap, float yMap) {
-		float[] out = {xMap, yMap};
-		mapToScreenMatrix.mapPoints(out);
-		return out;
-	}
-		
 	public boolean onTouchEvent(MotionEvent  ev) {
 		mScaleDetector.onTouchEvent(ev);
 		final int action = ev.getAction();
@@ -330,6 +249,7 @@ public class MapView extends View {
 				if(scaling){
 					scaling = false;
 				}
+				selectedVertex = null;
 		        break;
 		    }
 		    case MotionEvent.ACTION_DOWN: {
@@ -348,20 +268,15 @@ public class MapView extends View {
 				if(!scaling){
 					final float x = ev.getX();
 					final float y = ev.getY();
-					
-					// Calculate the distance moved
-					final float dx = (x - mLastTouchX);
-					final float dy = (y - mLastTouchY);
-
-					float[] mapCoords = rotateMovementScreenToMap(angle, dx, dy);
-					
-					// Move the object
+		
 					if (selectedVertex == null) {
-						mPosX -= mapCoords[0] / mScaleFactor;
-						mPosY -= mapCoords[1] / mScaleFactor;
+						// Calculate the distance moved
+						final float dx = (x - mLastTouchX) / ms.getScale();
+						final float dy = (y - mLastTouchY) / ms.getScale();
+						// Move the object
+						ms.move(-dx, -dy);
 					} else {
-						float[] mapPosition = screenToMapCoords(x,y);
-						
+						float[] mapPosition = ms.screenToMapCoords(x,y);
 						selectedVertex.x = (int) mapPosition[0];
 						selectedVertex.y = (int) mapPosition[1];
 					}
@@ -384,10 +299,11 @@ public class MapView extends View {
 	    @Override
 	    public boolean onScale(ScaleGestureDetector detector) {
 			scaling = true;
-	        mScaleFactor *= detector.getScaleFactor();
+	        float newScale = ms.getScale() * detector.getScaleFactor();
 
 	        // Don't let the object get too small or too large.
-	        mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 10.0f));
+	        newScale = Math.max(0.1f, Math.min(newScale, 10.0f));
+	        ms.setScale(newScale);
 
 	        invalidate();
 	        return true;
@@ -403,12 +319,12 @@ public class MapView extends View {
 	        	// 2. take into account screen orientation
 	        	float angleNew = -_heading - 90*mDisplay.getOrientation();
 	        	// to smooth the rotation, only rotate if angle changes significantly
-	        	if (Math.abs(angle - angleNew) > 0.3) {
-	        		angle = angleNew;
+	        	if (Math.abs(ms.getAngle() - angleNew) > 0.3) {
+	        		ms.setAngle(angleNew);
 	                invalidate();
 	        	}
         	} else {
-        		angle = -90 * mDisplay.getOrientation();
+        		ms.setAngle(-90 * mDisplay.getOrientation());
         	}
         }
 
@@ -421,7 +337,7 @@ public class MapView extends View {
 		public boolean onLongClick(View v) {
 			selectedVertex = null;
         	if (mode == Mode.WAYPOINT) {
-				float[] coords = screenToMapCoords(mLastTouchX, mLastTouchY);
+				float[] coords = ms.screenToMapCoords(mLastTouchX, mLastTouchY);
 	        	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
 	        	if (vertex != null) {
 	        		map.addWaypoint(vertex);
@@ -430,7 +346,7 @@ public class MapView extends View {
 	        	route();
         	}
         	else if (mode == Mode.GRAPH) {
-        		float[] coords = screenToMapCoords(mLastTouchX, mLastTouchY);
+        		float[] coords = ms.screenToMapCoords(mLastTouchX, mLastTouchY);
 	        	Vertex vertex = graph.nearestVertex((int)coords[0], (int)coords[1]);
 	        	if (vertex != null) {
 	        		map.clearWaypoints();
@@ -455,13 +371,7 @@ public class MapView extends View {
 				float dx = 0;
 				float dy = -(stepLength / map.pixelLength);
 				
-				float[] transformed = rotateMovementScreenToMap(angle, dx,dy);
-				mPosX += transformed[0];
-				mPosY += transformed[1];
-				
-				//map.addMarker((int) (mPosX + centerX), (int) (mPosY + centerY));
-				//mPosX -= dx;
-				Log.i("clickAdvance", "PosX = " + mPosX);
+				ms.move(dx, dy);
 				invalidate();
 			}
 			//return false;
@@ -471,7 +381,8 @@ public class MapView extends View {
 	private void centerOnNearestEdge() {
 		// this is the easiest but also the most inefficient way to center on an edge:
 		// find closest edge E relative to center of screen C
-		float[] c = screenToMapCoords(centerX, centerY);
+		int[] center = ms.getScreenCenter();
+		float[] c = ms.screenToMapCoords(center[0], center[1]);
 		// find shortest distance from C to point P on edge E
 		float[] p = null;
 		double shortestDistance = Double.MAX_VALUE;
@@ -486,22 +397,12 @@ public class MapView extends View {
 		if (p == null) {
 			return;
 		}
-		centerOnMapPosition(p[0], p[1]);
+		ms.centerOnMapPosition(p[0], p[1]);
 		
 	}
 	
 	
-	private void centerOnMapPosition(float posX, float posY) {
-		float[] p = mapToScreenCoords(posX, posY);
-		// calculate dx, dy between center and point p
-		float dx = p[0] - centerX;
-		float dy = p[1] - centerY;
-		// rotate map to screen 
-		float[] transformed = rotateMovementScreenToMap(angle, dx, dy);
-		// update mPosX, mPosY with dx, dy
-		mPosX += transformed[0] / mScaleFactor;
-		mPosY += transformed[1] / mScaleFactor;
-	}
+	
 
 
 }
