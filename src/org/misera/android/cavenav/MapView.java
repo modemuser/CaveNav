@@ -14,6 +14,7 @@ import org.misera.android.cavenav.graph.Graph;
 import org.misera.android.cavenav.graph.Vertex;
 import org.misera.android.cavenav.map.MapBundle;
 import org.misera.android.cavenav.map.MapScreen;
+import org.misera.android.cavenav.map.RotationDamper;
 import org.misera.android.cavenav.raycaster.RayCastRendererView;
 import org.misera.android.cavenav.raycaster.RayCaster;
 
@@ -26,19 +27,18 @@ public class MapView extends View {
 	private boolean scaling = false;
 	private float mLastTouchY;
 	private float mLastTouchX;
-
 	private RayCastRendererView rayCastRenderer;	
 	private boolean hasRayCaster = false;
-	
 	private boolean clickStepping = false;
 	private boolean followEdges = false;
 	private Vertex selectedVertex;
+	private Context context;
+	private RotationDamper rotationDamper;
 	
 	private Mode mode = Mode.NORMAL;
 	public enum Mode {
 		NORMAL, WAYPOINT, GRAPH, POI
 	}
-	private Context context;
 
 	public MapView(Context context, MapBundle mb) {
 		super(context);
@@ -49,8 +49,9 @@ public class MapView extends View {
 	    mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 		SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         Sensor mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-	    mSensorManager.registerListener(mListener, mSensor, SensorManager.SENSOR_DELAY_UI);
-		
+	    mSensorManager.registerListener(mListener, mSensor, SensorManager.SENSOR_DELAY_NORMAL);
+		this.rotationDamper = new RotationDamper();
+	    
 		this.setOnClickListener(clickListener);
 	    this.setOnLongClickListener(longClickListener);
 	    
@@ -108,18 +109,16 @@ public class MapView extends View {
 	    if (followEdges) {
 	    	centerOnNearestEdge();
 	    }
+	    ms.setAngle(rotationDamper.getHeading());
 	    ms.setDimensions(this.getWidth(), this.getHeight());
 	    ms.update();
 	    int[] screenCenter = ms.getScreenCenter();
 	    float[] position = ms.getPosition();
-
+	    
         // map
         mb.map.draw(canvas, ms);
-		
-        // bullseye at center
-        mb.centerMarker.draw(canvas, ms);
-	    	    		
-		// graph
+				
+        // graph
 		if (mode == Mode.GRAPH) {
 			mb.graph.draw(canvas, ms);
 		}
@@ -129,6 +128,9 @@ public class MapView extends View {
 		
 		//route
 		mb.route.draw(canvas, ms);
+		
+        // bullseye at center
+        mb.centerMarker.draw(canvas, ms);
 		
 		// debug overlay
 	    Paint paint = new Paint();
@@ -224,7 +226,8 @@ public class MapView extends View {
 	private final SensorEventListener mListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
         	float heading = event.values[0];
-    		ms.setAngle(heading);
+        	rotationDamper.setHeading(heading);
+    		//ms.setAngle(heading);
             invalidate();
         }
 
