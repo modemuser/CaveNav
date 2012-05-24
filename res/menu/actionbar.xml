@@ -28,6 +28,8 @@
     <item android:id="@+id/follow_edes"
           android:title="@string/follow_edges"
           android:checkable="true" />
+    <item android:id="@+id/sync_poi"
+          android:title="@string/sync_poi" />
     <item android:id="@+id/choose_map"
           android:title="@string/choose_map" >
         <menu>

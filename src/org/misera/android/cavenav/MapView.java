@@ -1,5 +1,6 @@
 package org.misera.android.cavenav;
 
+
 import android.app.AlertDialog;
 import android.content.*;
 import android.graphics.*;
@@ -78,7 +79,6 @@ public class MapView extends View {
 	public void toggleFollowEdges() {
 		this.followEdges = !this.followEdges;
 	}
-		
 		
     public void clear() {
 		mb.route.clear();
@@ -287,14 +287,15 @@ public class MapView extends View {
 						}	
 					});
 
-					alert.show();
+					alert.show();    
+					
 					return false;
 				}
 			}
 			return false;
         }
     };
-    	
+    
 	private OnClickListener clickListener = new OnClickListener(){
 		public void onClick(View v){
 			if (clickStepping) {

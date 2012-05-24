@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
  */
 public class MapBundle {
 	
+	public String mapName;
 	public MapComponent map;
 	public GraphComponent graph;
 	public RouteComponent route;
@@ -15,11 +16,13 @@ public class MapBundle {
 	public POIComponent poi;
 	public double pixelLength; // length in meters of one pixel in pic
 	
-	public MapBundle(Bitmap pic, double pixelLength) {
+	public MapBundle(String mapName, Bitmap pic, double pixelLength) {
+		this.mapName = mapName;
 		this.map = new MapComponent(pic);
 		this.pixelLength = pixelLength;
 		this.centerMarker = new CenterMarkerComponent();
-		this.poi = new POIComponent();
+		this.poi = new POIComponent(mapName);
+		this.poi.readFile();
 	}
 	
 	public void initGraph(String json) {
