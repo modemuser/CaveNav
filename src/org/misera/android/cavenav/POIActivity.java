@@ -1,11 +1,8 @@
 package org.misera.android.cavenav;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,45 +28,30 @@ import org.misera.android.cavenav.raycaster.RayCastRendererView;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.Camera;
-import android.hardware.Camera.Parameters;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-public class MapActivity extends Activity {
-		
+public class POIActivity extends Activity {
     private MapView mapView;
     private MapBundle mapBundle;
-    private RayCastRendererView rayCastView;
-    
-    private boolean mapIsMainView = true;
-    private boolean hasFlashLight;
-    private boolean flashLightEnabled = false;
-
-    private OnFlashlightClickListener flashLightListener = new OnFlashlightClickListener(this);
-
     private ProgressDialog mProgressDialog;
 	private String mapName;
-    
+	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        hasFlashLight = this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-        
+            
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setMessage("A message");
         mProgressDialog.setIndeterminate(false);
@@ -82,148 +64,42 @@ public class MapActivity extends Activity {
         	);
         load("caestert");
 	} 
-       
+	
 	private void load(String mapName) {
 		this.mapName = mapName;
 		String folder = mapName + "/";
 		Bitmap map = getBitmapFromAsset(folder + "map.png");
-		String graph = getStringFromAsset(folder + "graph.json");
 		double pixelLength = 0.5;
 		mapBundle = new MapBundle(this.mapName, map, pixelLength);
-		mapBundle.initGraph(graph);
 		
 		mapView = new MapView(this, mapBundle);
-		mapView.setMode(Mode.NORMAL);
+		mapView.setMode(Mode.POI);
 		
-		Bitmap canny = getBitmapFromAsset(folder + "canny.png");
-		rayCastView = new RayCastRendererView(this, canny);
-
-		setContentView(R.layout.raymap);
-		LinearLayout main = (LinearLayout) findViewById(R.id.contentMain);
+		setContentView(R.layout.maponly);
+		LinearLayout main = (LinearLayout) findViewById(R.id.mapOnly);
 		main.addView(mapView);
 		
-		LinearLayout miniMap = (LinearLayout) findViewById(R.id.miniMap);
-		miniMap.addView(rayCastView);
-		
-		mapView.setRayCaster(rayCastView);
 		mapView.requestFocus();        
 
     }
 	
-	private void toggleSwitchView(){
-		LinearLayout main = (LinearLayout) findViewById(R.id.contentMain);
-		LinearLayout miniMap = (LinearLayout) findViewById(R.id.miniMap);
-		
-		if(mapIsMainView){
-			main.removeView(mapView);
-			miniMap.removeView(rayCastView);
-			
-			main.addView(rayCastView,0);
-			miniMap.addView(mapView, 0);
-		}
-		else{
-			main.removeView(rayCastView);
-			miniMap.removeView(mapView);
-			
-			main.addView(mapView,0);
-			miniMap.addView(rayCastView, 0);			
-		}
-
-		mapIsMainView = !mapIsMainView;
-	}
-	
-	private class OnFlashlightClickListener implements OnMenuItemClickListener{
-
-		private Camera cam;
-		private Activity activity;
-		
-		public OnFlashlightClickListener(Activity activity){
-			this.activity = activity;
-		}
-		
-    	
-		public boolean onMenuItemClick(MenuItem item) {
-			flashLightEnabled = !flashLightEnabled;
-			if(flashLightEnabled){
-				cam = Camera.open();
-				Parameters p = cam.getParameters();
-				p.setFlashMode(Parameters.FLASH_MODE_TORCH);
-				cam.setParameters(p);
-				cam.startPreview();
-			}
-			else{
-				cam.stopPreview();
-				cam.release();
-			}
-			
-			activity.invalidateOptionsMenu();
-			return false;
-		}
-		
-	}
-    
-    
-    @Override
+	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.actionbar, menu);
-        
-        if(hasFlashLight){
-            MenuItem flashLightItem;
-            if(flashLightEnabled){
-            	flashLightItem = menu.add("Light off");
-            }else{
-            	flashLightItem = menu.add("Light on");
-            }
-            
-            flashLightItem.setOnMenuItemClickListener(flashLightListener);
-            flashLightItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        }
-
-        
+        inflater.inflate(R.menu.poi, menu);
         return true;
     }
-    
-    @Override
+	
+	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
-	        case R.id.mode_normal:
-	        	item.setChecked(true);
-	    		mapView.setMode(Mode.NORMAL);
-	    		return true;
-	    	case R.id.mode_waypoint:
-	        	item.setChecked(true);
-	    		mapView.setMode(Mode.WAYPOINT);
-	    		return true;
-	    	case R.id.mode_graph:
-	        	item.setChecked(true);
-	    		mapView.setMode(Mode.GRAPH);
-	    		return true;
-	    	case R.id.mode_poi:
-	        	item.setChecked(true);
-	    		mapView.setMode(Mode.POI);
-	    		return true;
-            case R.id.menu_clear:
-                mapView.clear();
-                return true;
-            case R.id.click_stepping:
-            	item.setChecked(!item.isChecked());
-                mapView.toggleClickStepping();
-                return true;
-            case R.id.follow_edes:
-            	item.setChecked(!item.isChecked());
-            	mapView.toggleFollowEdges();
-            	return true;
-            case R.id.caestert:
-            	load("caestert");
-            	return true;
-            case R.id.ternaaien:
-            	load("ternaaien");
-            	return true;
-            case R.id.switch_views:
-            	toggleSwitchView();
-            	return true;
+	        case R.id.caestert:
+	        	load("caestert");
+	        	return true;
+	        case R.id.ternaaien:
+	        	load("ternaaien");
+	        	return true;
             case R.id.sync_poi:
             	//first, upload any new POIs
             	String url = "http://cavenav.android.misera.org/poi/" + mapName;
@@ -342,12 +218,7 @@ public class MapActivity extends Activity {
         
     }
     
-    
-	/**
-	 * Helper Functions
-	 */
-    
-	private Bitmap getBitmapFromAsset(String strName) {
+    private Bitmap getBitmapFromAsset(String strName) {
 	    AssetManager assetManager = getAssets();
 	
 	    InputStream istr = null;
@@ -361,23 +232,4 @@ public class MapActivity extends Activity {
 		}
 		return null;
 	}
-	
-	private String getStringFromAsset(String strName) {
-		AssetManager assetManager = getAssets();
-		
-	    InputStream istr = null;
-		try {
-			istr = assetManager.open(strName);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-	    try {
-	        return new java.util.Scanner(istr).useDelimiter("\\A").next();
-	    } catch (java.util.NoSuchElementException e) {
-	        return "";
-	    }
-	}
-	
-	
 }
